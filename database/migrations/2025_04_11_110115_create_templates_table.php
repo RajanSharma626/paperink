@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('slug')->unique();
             $table->string('preview_img')->nullable();
+            $table->boolean('is_premium')->default(false);
             $table->string('component');
             $table->timestamps();
         });

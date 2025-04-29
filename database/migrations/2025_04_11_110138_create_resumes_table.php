@@ -18,6 +18,8 @@ return new class extends Migration
             $table->string('slug')->unique();
             $table->foreignId('template_id')->nullable()->constrained('resume_templates')->nullOnDelete();
             $table->json('settings')->nullable();
+            $table->string('preview_image')->nullable();
+            $table->unsignedBigInteger('download_count')->default(0);
             $table->enum('status', ['draft', 'published'])->default('draft');
             $table->timestamps();
         });

@@ -1,115 +1,112 @@
 <template>
     <div class="page" id="page">
-        <div class="main">
-            <div class="top">
-                <div v-if="resume.name" class="name">{{ resume.name }}</div>
-                <div v-if="resume.title" class="profession">{{ resume.title }}</div>
-                <div v-if="resume.summary" class="bio" v-html="resume.summary"></div>
-            </div>
-
-            <div v-if="hasContactDetails" class="middle">
-                <div class="details-section">
-                    <p v-if="resume.email" class="details"><i class="icons bi-envelope-fill"></i>{{ resume.email }}</p>
-                    <p v-if="resume.phone" class="details"><i class="icons bi-phone-fill "></i>{{ resume.phone }}</p>
-                    <p v-if="resume.address" class="details"><i class="icons bi-geo-alt-fill"></i>{{ resume.address }}
-                    </p>
-                    <p v-if="resume.linkedin" class="details"><i class="icons bi-linkedin"></i>{{ resume.linkedin }}</p>
-                    <p v-if="resume.web" class="details"><i class="icons bi bi-skype"></i>{{ resume.web }}</p>
-                </div>
-            </div>
-
-            <div class="end">
-                <div v-if="resume.skills && resume.skills.length" class="skills">
-                    <h4>Skills</h4>
-                    <div class="skills-section">
-                        <p>
-                            <span v-for="(skill, index) in resume.skills" :key="index">{{ skill.skill }}</span>
-                        </p>
-                    </div>
-                </div>
-
-
-                <br v-if="resume.experiences && resume.experiences.length" />
-                <div v-if="resume.experiences && resume.experiences.length" class="work-experience">
-                    <h4>work experience</h4>
-                    <div v-for="(exp, index) in resume.experiences" :key="index">
-                        <h5>{{ exp.role }}</h5>
-                        <h6>{{ exp.company }}</h6>
-                        <span class="date">
-                            <span>{{ exp.startYear }} - {{ exp.endYear }}</span>
-                            <span>{{ exp.address }}</span>
-                        </span>
-                        <p v-html="exp.description"></p>
-                    </div>
-                </div>
-
-                <div v-if="resume.education && resume.education.length" class="education">
-                    <h4>Education</h4>
-                    <div class="education-section">
-                        <div v-for="(edu, index) in resume.education" :key="index">
-                            <h5>{{ edu.degree }}</h5>
-                            <h6>{{ edu.university }}</h6>
-                            <span class="date">{{ edu.startYear }} - {{ edu.endYear }}</span>
-                            <br /><br />
-                        </div>
-                    </div>
-                </div>
-
-                <br v-if="resume.orgs && resume.orgs.length" />
-                <div v-if="resume.orgs && resume.orgs.length" class="organization">
-                    <h4>Organizations</h4>
-                    <div class="organization-section">
-                        <div class="left">
-                            <div v-for="(org, index) in leftOrgs" :key="'left-' + index">
-                                <p>{{ org.org }}<br />({{ org.start }} - {{ org.end }})</p>
-                            </div>
-                        </div>
-                        <div class="right">
-                            <div v-for="(org, index) in rightOrgs" :key="'right-' + index">
-                                <p>{{ org.org }}<br />({{ org.start }} - {{ org.end }})</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <br v-if="resume.lang && resume.lang.length" />
-                <div v-if="resume.lang && resume.lang.length" class="languages">
-                    <h4>Languages</h4>
-                    <div class="languages-section">
-                        <p v-for="(language, index) in resume.lang" :key="index">
-                            {{ language.lang }} <br /><span>{{ language.lvl }}</span>
-                        </p>
-                    </div>
-                </div>
-            </div>
+      <div class="main">
+        <div class="top">
+          <div v-if="resume.name" class="name">{{ resume.name + ' ' + resume.lastName }}</div>
+          <div v-if="resume.jobTitle" class="profession">{{ resume.jobTitle }}</div>
+          <div v-if="resume.summary" class="bio" v-html="resume.summary"></div>
         </div>
+  
+        <div v-if="hasContactDetails" class="middle">
+          <div class="details-section">
+            <p v-if="resume.email" class="details"><i class="icons bi-envelope-fill"></i> {{ resume.email }}</p>
+            <p v-if="resume.phone" class="details"><i class="icons bi-phone-fill"></i> {{ resume.phone }}</p>
+            <p v-if="resume.address" class="details"><i class="icons bi-geo-alt-fill"></i>
+              {{ [resume.address, resume.city, resume.postalCode, resume.country].filter(Boolean).join(', ') }}
+            </p>
+            <p v-if="resume.linkedin" class="details"><i class="icons bi-linkedin"></i> {{ resume.linkedin }}</p>
+            <p v-if="resume.web" class="details"><i class="icons bi bi-skype"></i> {{ resume.web }}</p>
+          </div>
+        </div>
+  
+        <div class="end">
+          <div v-if="resume.skills && resume.skills.length" class="skills">
+            <h4>Skills</h4>
+            <div class="skills-section">
+              <p>
+                <span v-for="(skill, index) in resume.skills" :key="index">{{ skill.skill }}</span>
+              </p>
+            </div>
+          </div>
+  
+          <br v-if="resume.employmentHistory && resume.employmentHistory.length" />
+          <div v-if="resume.employmentHistory && resume.employmentHistory.length" class="work-experience">
+            <h4>Work Experience</h4>
+            <div v-for="(exp, index) in resume.employmentHistory" :key="index">
+              <h5>{{ exp.jobTitle }}</h5>
+              <h6>{{ exp.company }}</h6>
+              <span class="date">
+                <span>{{ exp.startDate }} - {{ exp.endDate }}</span>
+                <span>{{ exp.city }}</span>
+              </span>
+              <p v-html="exp.description"></p> <!-- ✅ Renders HTML description -->
+            </div>
+          </div>
+  
+          <div v-if="resume.education && resume.education.length" class="education">
+            <h4>Education</h4>
+            <div class="education-section">
+              <div v-for="(edu, index) in resume.education" :key="index">
+                <h5>{{ edu.degree }}</h5>
+                <h6>{{ edu.school }}</h6>
+                <span class="date">{{ edu.startDate }} - {{ edu.endDate }}</span>
+                <p v-html="edu.description"></p> <!-- ✅ Renders HTML description -->
+                <br /><br />
+              </div>
+            </div>
+          </div>
+  
+          <br v-if="resume.orgs && resume.orgs.length" />
+          <div v-if="resume.orgs && resume.orgs.length" class="organization">
+            <h4>Organizations</h4>
+            <div class="organization-section">
+              <div class="left">
+                <div v-for="(org, index) in leftOrgs" :key="'left-' + index">
+                  <p>{{ org.org }}<br />({{ org.start }} - {{ org.end }})</p>
+                </div>
+              </div>
+              <div class="right">
+                <div v-for="(org, index) in rightOrgs" :key="'right-' + index">
+                  <p>{{ org.org }}<br />({{ org.start }} - {{ org.end }})</p>
+                </div>
+              </div>
+            </div>
+          </div>
+  
+          <br v-if="resume.lang && resume.lang.length" />
+          <div v-if="resume.lang && resume.lang.length" class="languages">
+            <h4>Languages</h4>
+            <div class="languages-section">
+              <p v-for="(language, index) in resume.lang" :key="index">
+                {{ language.lang }} <br /><span>{{ language.lvl }}</span>
+              </p>
+            </div>
+          </div>
+  
+        </div>
+      </div>
     </div>
-</template>
-
-<script>
-export default {
-    name: "ResumeTemplate",
-
-    props: {
-        resume: {
-            type: Object,
-            required: true,
-        },
+  </template>
+  
+  <script setup>
+  import { computed } from 'vue';
+  
+  const props = defineProps({
+    resume: {
+      type: Object,
+      required: true,
     },
-    computed: {
-        hasContactDetails() {
-            const r = this.resume;
-            return r.email || r.phone || r.address || r.linkedin || r.web;
-        },
-        leftOrgs() {
-            return this.resume.orgs?.filter((_, i) => i % 2 === 0) || [];
-        },
-        rightOrgs() {
-            return this.resume.orgs?.filter((_, i) => i % 2 !== 0) || [];
-        },
-    },
-};
-</script>
+  });
+  
+  const hasContactDetails = computed(() => {
+    const r = props.resume;
+    return r.email || r.phone || r.address || r.linkedin || r.web;
+  });
+  
+  const leftOrgs = computed(() => props.resume.orgs?.filter((_, i) => i % 2 === 0) || []);
+  const rightOrgs = computed(() => props.resume.orgs?.filter((_, i) => i % 2 !== 0) || []);
+  </script>
+  
 
 <style scoped>
 * {
@@ -345,4 +342,5 @@ export default {
         box-shadow: none;
     }
 }
+
 </style>
