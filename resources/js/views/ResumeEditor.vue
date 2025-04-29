@@ -1,5 +1,12 @@
 <template>
     <div class="container-fluid">
+        <div class="row justify-content-between">
+            <div class="col"></div>
+            <div class="col"><button @click.prevent="downloadPDF" class="btn btn-outline-primary mt-3">
+                    Download Resume as PDF
+                </button>
+            </div>
+        </div>
         <div class="row p-5">
 
             <!-- Left Side: Step Form -->
@@ -15,9 +22,12 @@
                             </div>
 
                             <!-- Rich Text Area (Summary and other descriptions) -->
-                            <div v-else-if="field.type === 'textarea'" class="col-12 mb-3">
+                            <div v-else-if="field.type === 'richtext'" class="col-12 mb-3">
                                 <label class="form-label">{{ field.label }}</label>
-                                <CkEditor v-model="resumeStore.resumeData[field.field]" />
+                                <!-- <textarea v-model="resumeStore.resumeData[field.field]" class="form-custom">
+                                    </textarea> -->
+                                    <QuillEditor v-model="resumeStore.resumeData[field.field]" />
+
                             </div>
 
                             <!-- Employment History -->
@@ -46,7 +56,9 @@
                                             </div>
                                         </div>
                                         <input v-model="job.city" class="form-custom mb-2" placeholder="City" />
-                                        <CkEditor v-model="job.description" />
+                                        <!-- <textarea v-model="job.description" class="form-custom"
+                                            placeholder="Description"></textarea> -->
+                                            <QuillEditor v-model="job.description" />
                                         <button @click.prevent="removeEmployment(jobIndex)"
                                             class="btn btn-danger btn-sm mt-2">
                                             <i class="bi bi-trash3"></i> Remove
@@ -77,7 +89,9 @@
                                             </div>
                                         </div>
                                         <input v-model="edu.city" class="form-custom mb-2" placeholder="City" />
-                                        <CkEditor v-model="edu.description" />
+                                        <!-- <textarea v-model="edu.description" class="form-custom"
+                                            placeholder="Description"></textarea> -->
+                                            <QuillEditor v-model="edu.description" />
                                         <button @click.prevent="removeEducation(eduIndex)"
                                             class="btn btn-danger btn-sm mt-2">
                                             Remove
@@ -147,12 +161,14 @@
 import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useResumeStore } from '@/stores/resume'
-import ResumeTemplate from '@/Components/templates/ResumeTemplate1.vue'
-import CkEditor from '@/Components/form/CkEditor.vue'
+import ResumeTemplate from '@/Components/templates/ResumeTemplate2.vue'
+import QuillEditor from '@/Components/form/QuillEditor.vue'
+import html2pdf from 'html2pdf.js'
 
 const route = useRoute()
 const templateId = route.params.template
 const resumeStore = useResumeStore()
+
 
 // Stepper Logic
 const step = ref(1)
@@ -168,7 +184,7 @@ const formSteps = [
         { field: 'city', label: 'City/State', type: 'text' },
         { field: 'postalCode', label: 'Postal Code', type: 'text' },
         { field: 'country', label: 'Country', type: 'text' },
-        { field: 'summary', label: 'Professional Summary', type: 'textarea' },
+        { field: 'summary', label: 'Professional Summary', type: 'richtext' },
     ],
     [{ field: 'employmentHistory', label: 'Employment History', type: 'employment' }],
     [{ field: 'education', label: 'Education', type: 'education' }],
@@ -211,7 +227,23 @@ function removeSkill(index) {
     resumeStore.resumeData.skills.splice(index, 1)
 }
 
-console.log('Summary value on load:', resumeStore.resumeData.summary)
+function downloadPDF() {
+  const element = document.getElementById('page') // 🔥 Your resume preview div
+  if (!element) {
+    alert('Resume preview not found!')
+    return
+  }
+
+  const opt = {
+    margin: 0,
+    filename: 'My_Resume.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2 },
+    jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+  }
+
+  html2pdf().from(element).set(opt).save()
+}
 
 </script>
 

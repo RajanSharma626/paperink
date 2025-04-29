@@ -6,7 +6,7 @@
           <div v-if="resume.jobTitle" class="profession">{{ resume.jobTitle }}</div>
           <div v-if="resume.summary" class="bio" v-html="resume.summary"></div>
         </div>
-  
+
         <div v-if="hasContactDetails" class="middle">
           <div class="details-section">
             <p v-if="resume.email" class="details"><i class="icons bi-envelope-fill"></i> {{ resume.email }}</p>
@@ -18,7 +18,7 @@
             <p v-if="resume.web" class="details"><i class="icons bi bi-skype"></i> {{ resume.web }}</p>
           </div>
         </div>
-  
+
         <div class="end">
           <div v-if="resume.skills && resume.skills.length" class="skills">
             <h4>Skills</h4>
@@ -28,7 +28,7 @@
               </p>
             </div>
           </div>
-  
+
           <br v-if="resume.employmentHistory && resume.employmentHistory.length" />
           <div v-if="resume.employmentHistory && resume.employmentHistory.length" class="work-experience">
             <h4>Work Experience</h4>
@@ -42,7 +42,7 @@
               <p v-html="exp.description"></p> <!-- ✅ Renders HTML description -->
             </div>
           </div>
-  
+
           <div v-if="resume.education && resume.education.length" class="education">
             <h4>Education</h4>
             <div class="education-section">
@@ -55,7 +55,7 @@
               </div>
             </div>
           </div>
-  
+
           <br v-if="resume.orgs && resume.orgs.length" />
           <div v-if="resume.orgs && resume.orgs.length" class="organization">
             <h4>Organizations</h4>
@@ -72,7 +72,7 @@
               </div>
             </div>
           </div>
-  
+
           <br v-if="resume.lang && resume.lang.length" />
           <div v-if="resume.lang && resume.lang.length" class="languages">
             <h4>Languages</h4>
@@ -82,31 +82,31 @@
               </p>
             </div>
           </div>
-  
+
         </div>
       </div>
     </div>
   </template>
-  
+
   <script setup>
   import { computed } from 'vue';
-  
+
   const props = defineProps({
     resume: {
       type: Object,
       required: true,
     },
   });
-  
+
   const hasContactDetails = computed(() => {
     const r = props.resume;
     return r.email || r.phone || r.address || r.linkedin || r.web;
   });
-  
+
   const leftOrgs = computed(() => props.resume.orgs?.filter((_, i) => i % 2 === 0) || []);
   const rightOrgs = computed(() => props.resume.orgs?.filter((_, i) => i % 2 !== 0) || []);
   </script>
-  
+
 
 <style scoped>
 * {
