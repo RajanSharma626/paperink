@@ -9,6 +9,7 @@ class ResumeTemplate extends Model
 {
     use HasFactory;
 
+    protected $table = 'resume_templates';
     protected $fillable = [
         'name',
         'preview_img',

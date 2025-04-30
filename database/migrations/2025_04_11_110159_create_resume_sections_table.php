@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('resume_sections', function (Blueprint $table) {
             $table->id();
             $table->foreignId('resume_id')->constrained()->onDelete('cascade');
-            $table->string('type');
             $table->string('title')->nullable();
             $table->integer('position')->default(0);
             $table->json('data');

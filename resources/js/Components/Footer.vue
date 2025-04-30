@@ -12,7 +12,7 @@
                 </div>
 
                 <!-- Our Services -->
-                <div class="col-md-3 mb-4">
+                <!-- <div class="col-md-3 mb-4">
                     <h6 class="fw-bold">Our Services</h6>
                     <ul class="list-unstyled">
                         <li><router-link to="/resume" class="text-dark text-decoration-none">Resume</router-link></li>
@@ -23,10 +23,10 @@
                         <li><router-link to="/affiliate" class="text-dark text-decoration-none">Affiliate</router-link>
                         </li>
                     </ul>
-                </div>
+                </div> -->
 
                 <!-- Navigate -->
-                <div class="col-md-3 mb-4">
+                <!-- <div class="col-md-3 mb-4">
                     <h6 class="fw-bold">Navigate</h6>
                     <ul class="list-unstyled">
                         <li><router-link to="/" class="text-dark text-decoration-none">Home</router-link></li>
@@ -34,10 +34,10 @@
                         <li><router-link to="/pricing" class="text-dark text-decoration-none">Pricing</router-link></li>
                         <li><router-link to="/faq" class="text-dark text-decoration-none">FAQ</router-link></li>
                     </ul>
-                </div>
+                </div> -->
 
                 <!-- Support -->
-                <div class="col-md-3 mb-4">
+                <!-- <div class="col-md-3 mb-4">
                     <h6 class="fw-bold">Support</h6>
                     <ul class="list-unstyled">
                         <li><router-link to="/privacy-policy" class="text-dark text-decoration-none">Privacy
@@ -48,7 +48,7 @@
                                 Coaching</router-link></li>
                         <li><router-link to="/blogs" class="text-dark text-decoration-none">Blogs</router-link></li>
                     </ul>
-                </div>
+                </div> -->
             </div>
 
             <div class="text-center mt-4 small text-secondary">
