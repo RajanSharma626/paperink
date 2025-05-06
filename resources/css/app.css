@@ -9,18 +9,15 @@
 }
 
 @font-face {
-    font-family: 'TT Commans';
-    src: url('resource/css/font/TT Commons Regular.otf') format('opentype');
+    font-family: "TT Commans";
+    src: url("resource/css/font/TT Commons Regular.otf") format("opentype");
     font-weight: normal;
     font-style: normal;
-  }
-  
-  body {
-    font-family: 'TT Commans', system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif;
-  }
-  
+}
 
 body {
+    font-family: "TT Commans", system-ui, -apple-system, Segoe UI, Roboto,
+        Ubuntu, Cantarell, Noto Sans, sans-serif;
     margin: 0;
     padding: 0;
     /* font-family: "Lexend", sans-serif; */
@@ -54,4 +51,68 @@ body {
     height: 3px !important;
     width: 30%;
     background-color: var(--main-color);
+}
+
+.main-section {
+    background: var(--backgroud);
+}
+
+.my-second-outline-btn {
+    color: var(--white) !important;
+    transition: all 0.2s linear;
+    border: 2px solid var(--white);
+}
+
+.ai-summery-card {
+    background-color: #d9d9d9;
+    opacity: 40%;
+    border-radius: 15px;
+    height: 100%;
+}
+
+.ai-input {
+    background-color: #bcbcbc;
+    height: 100%;
+    border-radius: 15px;
+}
+
+.my-outline-btn {
+    color: var(--black) !important;
+    transition: all 0.2s linear;
+    border: 2px solid var(--main-color);
+}
+
+.my-outline-btn:hover {
+    background: var(--backgroud) !important;
+    color: var(--white) !important;
+}
+
+.comments {
+    background-color: #d9d9d9;
+}
+
+.faq-bg {
+    background-color: #d9d9d9 !important;
+}
+
+.footer-section {
+    background-color: #d9d9d9;
+}
+
+.second-clr {
+    color: var(--second-color) !important;
+}
+
+.footer-section p a {
+    text-decoration: none;
+    color: var(--black);
+    transition: all 0.2s linear;
+}
+
+hr {
+    margin: 1rem 0;
+    color: inherit;
+    border: 0;
+    border-top: var(--bs-border-width) solid;
+    opacity: .25;
 }

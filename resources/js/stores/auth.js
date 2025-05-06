@@ -11,8 +11,9 @@ export const useAuthStore = defineStore('auth', {
       this.user = user;
       this.isAuthenticated = true;
 
-      // Store the user data and token in localStorage
-      localStorage.setItem('token', 'your_token_here'); // Make sure to set the correct token here
+      // Store user data and token in localStorage
+      const token = 'token_' + Math.random().toString(36).substr(2);
+      localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
     },
     logout() {

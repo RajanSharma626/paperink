@@ -1,59 +1,52 @@
 <template>
-    <footer class="bg-light text-dark pt-5 pb-3 border-top">
-        <div class="container">
-            <div class="row">
-                <!-- Logo and Social -->
-                <div class="col-md-3 mb-4">
-                    <img src="https://paperink.io/img/core-img/logo.png" alt="Logo" height="60" class="mb-3" />
-                    <div class="d-flex gap-2">
-                        <a href="https://instagram.com" target="_blank"><i class="bi bi-instagram fs-4"></i></a>
-                        <a href="https://linkedin.com" target="_blank"><i class="bi bi-linkedin fs-4"></i></a>
+    <footer class="footer-section pt-3 pb-2">
+        <div class="container py-3">
+            <div class="row justify-content-evenly">
+                <div class="col-lg-5 col-12">
+                    <div class="footer-logo">
+                        <img src="https://paperink.io/img/core-img/logo.png" class="img-fluid mb-3" width="50" alt="">
+                        <div class="socail-media-footer">
+                            <a href="https://www.instagram.com/paperink.io/" target="_blank" class="fs-4"><i
+                                    class="bi bi-instagram second-clr me-2"></i></a>
+                            <a href="https://www.linkedin.com/company/proresumemakers/" target="_blank" class="fs-4"><i
+                                    class="bi bi-linkedin second-clr"></i></a>
+                        </div>
                     </div>
                 </div>
+                <div class="col-lg-7 col-12 mt-lg-0 mt-4">
+                    <div class="row">
+                        <div class="col-3 d-none d-lg-block">
 
-                <!-- Our Services -->
-                <!-- <div class="col-md-3 mb-4">
-                    <h6 class="fw-bold">Our Services</h6>
-                    <ul class="list-unstyled">
-                        <li><router-link to="/resume" class="text-dark text-decoration-none">Resume</router-link></li>
-                        <li><router-link to="/cover-letter" class="text-dark text-decoration-none">Cover
-                                Letter</router-link></li>
-                        <li><router-link to="/portfolio" class="text-dark text-decoration-none">Portfolio</router-link>
-                        </li>
-                        <li><router-link to="/affiliate" class="text-dark text-decoration-none">Affiliate</router-link>
-                        </li>
-                    </ul>
-                </div> -->
-
-                <!-- Navigate -->
-                <!-- <div class="col-md-3 mb-4">
-                    <h6 class="fw-bold">Navigate</h6>
-                    <ul class="list-unstyled">
-                        <li><router-link to="/" class="text-dark text-decoration-none">Home</router-link></li>
-                        <li><router-link to="/about" class="text-dark text-decoration-none">About us</router-link></li>
-                        <li><router-link to="/pricing" class="text-dark text-decoration-none">Pricing</router-link></li>
-                        <li><router-link to="/faq" class="text-dark text-decoration-none">FAQ</router-link></li>
-                    </ul>
-                </div> -->
-
-                <!-- Support -->
-                <!-- <div class="col-md-3 mb-4">
-                    <h6 class="fw-bold">Support</h6>
-                    <ul class="list-unstyled">
-                        <li><router-link to="/privacy-policy" class="text-dark text-decoration-none">Privacy
-                                Policy</router-link></li>
-                        <li><router-link to="/contact" class="text-dark text-decoration-none">Contact Us</router-link>
-                        </li>
-                        <li><router-link to="/career-coaching" class="text-dark text-decoration-none">Career
-                                Coaching</router-link></li>
-                        <li><router-link to="/blogs" class="text-dark text-decoration-none">Blogs</router-link></li>
-                    </ul>
-                </div> -->
+                        </div>
+                        <div class="col-lg-3 col-4">
+                            <h6 class="fs-6 fw-bold second-clr">Our Services</h6>
+                            <p class="mb-1"><a href="/resume-templates">Resume</a></p>
+                            <p class="mb-1"><a href="/cover-letter-templates">Cover Letter</a></p>
+                            <p class="mb-1"><a href="/portfolio-template">Portfolio</a></p>
+                            <p class="mb-1"><a href="/affiliate">Affiliate</a></p>
+                        </div>
+                        <div class="col-lg-3 col-4">
+                            <h6 class="fs-6 fw-bold second-clr">Navigate</h6>
+                            <p class="mb-1"><a href="/dashboard">Home</a></p>
+                            <p class="mb-1"><a href="/about">About us</a></p>
+                            <p class="mb-1"><a href="/pricing">Pricing</a></p>
+                            <p class="mb-1"><a href="/faq">FAQ</a></p>
+                        </div>
+                        <div class="col-lg-3 col-4">
+                            <h6 class="fs-6 fw-bold second-clr">Support</h6>
+                            <p class="mb-1"><a href="/privacy-policy">Privacy Policy</a></p>
+                            <p class="mb-1"><a href="/contact-us">Contact Us</a></p>
+                            <p class="mb-1"><a href="/coaching">Career Coaching</a></p>
+                            <p class="mb-1"><a href="/blogs">Blogs</a></p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="text-center mt-4 small text-secondary">
-                Copyright © 2024 All rights reserved PaperInk.io
-            </div>
+        </div>
+        <hr>
+        <div class="copyright">
+            <h6 class="text-center">Copyright © 2024 All rights reserved PaperInk.io</h6>
         </div>
     </footer>
 </template>
@@ -63,9 +56,3 @@ export default {
     name: 'Footer',
 };
 </script>
-
-<style scoped>
-footer a:hover {
-    color: #0d6efd;
-}
-</style>

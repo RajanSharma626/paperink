@@ -1,6 +1,6 @@
 <template>
     <!-- Login Modal -->
-    <div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true" ref="modalEl">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content border-0 shadow-lg">
                 <div class="row g-0">
@@ -8,7 +8,7 @@
                     <div
                         class="col-md-6 theme-bg text-white p-5 d-flex flex-column justify-content-center rounded-start">
                         <h3 class="fw-bold">Welcome Back!</h3>
-                        <p class="mb-4">Let’s Create your account.</p>
+                        <p class="mb-4">Let's Create your account.</p>
                         <button class="btn btn-light text-dark fw-semibold px-4 rounded" data-bs-toggle="modal"
                             data-bs-target="#registerModal">Sign Up</button>
                     </div>
@@ -50,40 +50,74 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import { useAuthStore } from '@/stores/auth'
+
+import bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min.js'
 
 const email = ref('')
 const password = ref('')
 const error = ref('')
 const auth = useAuthStore()
+const modalEl = ref(null)
+let bootstrapModal = null
+
+// Initialize the Bootstrap modal after component is mounted
+onMounted(() => {
+    if (modalEl.value) {
+        // Use the globally imported Bootstrap
+        bootstrapModal = new bootstrap.Modal(modalEl.value)
+    }
+})
 
 const loginUser = async () => {
-  try {
-    const res = await axios.post('/api/login', {
-      email: email.value,
-      password: password.value,
-    });
+    try {
+        const res = await axios.post('/api/login', {
+            email: email.value,
+            password: password.value,
+        });
 
-    // Login the user and store the user data and token in auth store
-    auth.login(res.data.user);
+        // Login the user and store the user data and token in auth store
+        auth.login(res.data.user);
 
-    // Hide the modal
-    const modalEl = document.getElementById('loginModal');
-    const modal = bootstrap.Modal.getInstance(modalEl);
-    modal?.hide();
+        // Hide the modal
+        if (bootstrapModal) {
+            bootstrapModal.hide();
+        } else {
+            // Fallback method if modal instance isn't available
+            const modalElement = document.getElementById('loginModal');
+            if (modalElement) {
+                const modalInstance = bootstrap.Modal.getInstance(modalElement);
+                modalInstance?.hide();
+            }
+        }
 
-    // Reset form values
-    email.value = '';
-    password.value = '';
-    error.value = '';
+        // Reset form values
+        email.value = '';
+        password.value = '';
+        error.value = '';
 
-  } catch (err) {
-    // Display error if login fails
-    error.value = err.response?.data?.message || 'Login failed';
-  }
+    } catch (err) {
+        console.error(err);
+        // Display error if login fails
+        error.value = err.response?.data?.message || 'Login failed';
+    }
 };
-
-
 </script>
+
+<style scoped>
+.theme-bg {
+    background-color: #4361ee;
+}
+
+.theme-btn {
+    background-color: #4361ee;
+    color: white;
+}
+
+.theme-btn:hover {
+    background-color: #3651cc;
+    color: white;
+}
+</style>
