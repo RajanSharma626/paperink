@@ -11,4 +11,11 @@ class CoverTemplateController extends Controller
     {
         return response()->json(CoverTemplate::all());
     }
+
+     // app/Http/Controllers/ResumeTemplateController.php
+    public function show($slug)
+    {
+        $template = CoverTemplate::where('slug', $slug)->firstOrFail();
+        return response()->json($template);
+    }
 }

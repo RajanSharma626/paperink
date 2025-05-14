@@ -67,10 +67,6 @@ export default {
             <div v-for="template in templates" :key="template.id" class="col-lg-3 col-12 mb-3">
                 <router-link :to="`/resume-editor/${template.slug}`">
                     <img :src="template.preview_img" class="img-fluid rounded custom-boc-shadow" alt="Template Preview">
-
-                    <a :href="`/preview-template/${template.id}`" class="btn my-btn-bg fs-6 preview-btn">
-                        <i class="bi bi-eye"></i>
-                    </a>
                 </router-link>
             </div>
         </div>

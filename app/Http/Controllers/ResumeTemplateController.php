@@ -11,4 +11,11 @@ class ResumeTemplateController extends Controller
     {
         return response()->json(ResumeTemplate::all());
     }
+
+    // app/Http/Controllers/ResumeTemplateController.php
+    public function show($slug)
+    {
+        $template = ResumeTemplate::where('slug', $slug)->firstOrFail();
+        return response()->json($template);
+    }
 }

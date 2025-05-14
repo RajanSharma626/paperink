@@ -67,8 +67,17 @@
             </div>
 
             <!-- Right Side: Live Preview -->
-            <div class="col-6 overflow-auto bg-light">
-                <CoverTemplate :cover="coverStore.coverData" />
+            <!-- Right Side: Live Preview -->
+            <div class="col-6 bg-light preview-wrapper">
+                <div v-if="!templateComponent" class="d-flex justify-content-center align-items-center"
+                    style="height: 100%;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+                <div v-else class="preview-scale">
+                    <component :is="templateComponent" :cover="coverStore.coverData" />
+                </div>
             </div>
 
         </div>
@@ -76,17 +85,29 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import axios from 'axios'
 import { useCoverStore } from '@/stores/cover'
-import CoverTemplate from '@/Components/templates/cover-letter/CoverTemplate.vue'
 import QuillEditor from '@/Components/form/QuillEditor.vue'
 import html2pdf from 'html2pdf.js'
 
 const route = useRoute()
 const templateId = route.params.template
 const coverStore = useCoverStore()
+const templateComponent = ref(null)
 
+const loadTemplate = async () => {
+    try {
+        const { data } = await axios.get(`/api/cover-template/${route.params.template}`)
+        const componentName = data.component
+        templateComponent.value = (await import(`@/Components/templates/cover-letter/${componentName}.vue`)).default
+    } catch (error) {
+        console.error('Failed to load template:', error)
+    }
+}
+
+onMounted(loadTemplate)
 
 function downloadPDF() {
     const element = document.getElementById('page') // 🔥 Your resume preview div
@@ -134,5 +155,18 @@ label {
 .form-custom:focus {
     color: rgb(30, 37, 50);
     border-bottom: 2px solid #0e6e7a;
+}
+
+
+.preview-wrapper {
+    padding: 10px;
+    height: 100vh;
+    background: #f8f9fa;
+}
+
+.preview-scale {
+    transform: scale(0.7);
+    /* Adjust scale to fit */
+    transform-origin: top center;
 }
 </style>

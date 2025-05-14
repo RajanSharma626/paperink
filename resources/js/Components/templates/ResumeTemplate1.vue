@@ -1,5 +1,5 @@
 <template>
-    <div class="page" id="page">
+    <div class="page border" id="page">
       <div class="main">
         <div class="top">
           <div v-if="resume.name" class="name">{{ resume.name + ' ' + resume.lastName }}</div>
@@ -51,7 +51,7 @@
                 <h6>{{ edu.school }}</h6>
                 <span class="date">{{ edu.startDate }} - {{ edu.endDate }}</span>
                 <p v-html="edu.description"></p> <!-- ✅ Renders HTML description -->
-                <br /><br />
+                
               </div>
             </div>
           </div>
@@ -120,8 +120,6 @@
     background: #fff;
     width: 210mm;
     min-height: 297mm;
-    margin: 10mm auto;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     border-radius: 10px;
 }
 

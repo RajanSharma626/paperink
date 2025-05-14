@@ -26,7 +26,7 @@
                                 <label class="form-label">{{ field.label }}</label>
                                 <!-- <textarea v-model="resumeStore.resumeData[field.field]" class="form-custom">
                                     </textarea> -->
-                                    <QuillEditor v-model="resumeStore.resumeData[field.field]" />
+                                <QuillEditor v-model="resumeStore.resumeData[field.field]" />
 
                             </div>
 
@@ -58,7 +58,7 @@
                                         <input v-model="job.city" class="form-custom mb-2" placeholder="City" />
                                         <!-- <textarea v-model="job.description" class="form-custom"
                                             placeholder="Description"></textarea> -->
-                                            <QuillEditor v-model="job.description" />
+                                        <QuillEditor v-model="job.description" />
                                         <button @click.prevent="removeEmployment(jobIndex)"
                                             class="btn btn-danger btn-sm mt-2">
                                             <i class="bi bi-trash3"></i> Remove
@@ -91,7 +91,7 @@
                                         <input v-model="edu.city" class="form-custom mb-2" placeholder="City" />
                                         <!-- <textarea v-model="edu.description" class="form-custom"
                                             placeholder="Description"></textarea> -->
-                                            <QuillEditor v-model="edu.description" />
+                                        <QuillEditor v-model="edu.description" />
                                         <button @click.prevent="removeEducation(eduIndex)"
                                             class="btn btn-danger btn-sm mt-2">
                                             Remove
@@ -149,8 +149,16 @@
             </div>
 
             <!-- Right Side: Live Preview -->
-            <div class="col-6 overflow-auto bg-light">
-                <ResumeTemplate :resume="resumeStore.resumeData" />
+            <div class="col-6 bg-light preview-wrapper">
+                <div v-if="!templateComponent" class="d-flex justify-content-center align-items-center"
+                    style="height: 100%;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+                <div v-else class="preview-scale">
+                    <component :is="templateComponent" :resume="resumeStore.resumeData" />
+                </div>
             </div>
 
         </div>
@@ -158,16 +166,28 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import axios from 'axios'
 import { useResumeStore } from '@/stores/resume'
-import ResumeTemplate from '@/Components/templates/ResumeTemplate2.vue'
 import QuillEditor from '@/Components/form/QuillEditor.vue'
 import html2pdf from 'html2pdf.js'
 
 const route = useRoute()
-const templateId = route.params.template
 const resumeStore = useResumeStore()
+const templateComponent = ref(null)
+
+const loadTemplate = async () => {
+    try {
+        const { data } = await axios.get(`/api/resume-template/${route.params.template}`)
+        const componentName = data.component
+        templateComponent.value = (await import(`@/Components/templates/${componentName}.vue`)).default
+    } catch (error) {
+        console.error('Failed to load template:', error)
+    }
+}
+
+onMounted(loadTemplate)
 
 
 // Stepper Logic
@@ -228,21 +248,21 @@ function removeSkill(index) {
 }
 
 function downloadPDF() {
-  const element = document.getElementById('page') // 🔥 Your resume preview div
-  if (!element) {
-    alert('Resume preview not found!')
-    return
-  }
+    const element = document.getElementById('page') // 🔥 Your resume preview div
+    if (!element) {
+        alert('Resume preview not found!')
+        return
+    }
 
-  const opt = {
-    margin: 0,
-    filename: 'My_Resume.pdf',
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2 },
-    jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-  }
+    const opt = {
+        margin: 0,
+        filename: 'My_Resume.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+    }
 
-  html2pdf().from(element).set(opt).save()
+    html2pdf().from(element).set(opt).save()
 }
 
 </script>
@@ -273,5 +293,17 @@ label {
 .form-custom:focus {
     color: rgb(30, 37, 50);
     border-bottom: 2px solid #0e6e7a;
+}
+
+.preview-wrapper {
+    padding: 10px;
+    height: 100vh;
+    background: #f8f9fa;
+}
+
+.preview-scale {
+    transform: scale(0.7);
+    /* Adjust scale to fit */
+    transform-origin: top center;
 }
 </style>
