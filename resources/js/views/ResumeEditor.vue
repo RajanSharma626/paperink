@@ -172,6 +172,8 @@ import axios from 'axios'
 import { useResumeStore } from '@/stores/resume'
 import QuillEditor from '@/Components/form/QuillEditor.vue'
 import html2pdf from 'html2pdf.js'
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
 
 const route = useRoute()
 const resumeStore = useResumeStore()
@@ -248,21 +250,207 @@ function removeSkill(index) {
 }
 
 function downloadPDF() {
-    const element = document.getElementById('page') // 🔥 Your resume preview div
-    if (!element) {
-        alert('Resume preview not found!')
-        return
-    }
+  // Create a new PDF document
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4',
+    compress: false
+  });
 
-    const opt = {
-        margin: 0,
-        filename: 'My_Resume.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-    }
+  // Set document properties for better indexing and searchability
+  doc.setProperties({
+    title: `${resumeStore.resumeData.name} ${resumeStore.resumeData.lastName} - Resume`,
+    subject: 'Professional Resume',
+    author: resumeStore.resumeData.name + ' ' + resumeStore.resumeData.lastName,
+    keywords: 'resume, cv, ' + resumeStore.resumeData.jobTitle,
+    creator: 'Resume Builder'
+  });
 
-    html2pdf().from(element).set(opt).save()
+  // Set default font
+  doc.setFont('helvetica', 'normal');
+  
+  // Page dimensions
+  const pageWidth = doc.internal.pageSize.width;
+  const margin = 15;
+  const usableWidth = pageWidth - (margin * 2);
+  
+  let yPosition = margin;
+  
+  // Helper function to add text with proper wrapping
+  function addText(text, x, y, options = {}) {
+    const defaultOptions = {
+      fontSize: 10,
+      fontStyle: 'normal',
+      maxWidth: usableWidth,
+      lineHeightFactor: 1.2
+    };
+    const mergedOptions = {...defaultOptions, ...options};
+    
+    doc.setFontSize(mergedOptions.fontSize);
+    doc.setFont('helvetica', mergedOptions.fontStyle);
+    
+    // Handle HTML content by stripping tags
+    const cleanText = text ? text.replace(/<[^>]*>/g, '') : '';
+    
+    const textLines = doc.splitTextToSize(cleanText, mergedOptions.maxWidth);
+    doc.text(textLines, x, y);
+    
+    return y + (textLines.length * mergedOptions.fontSize * 0.352778 * mergedOptions.lineHeightFactor);
+  }
+  
+  // Header section
+  yPosition = addText(`${resumeStore.resumeData.name} ${resumeStore.resumeData.lastName}`, margin, yPosition + 10, {
+    fontSize: 20,
+    fontStyle: 'bold'
+  });
+  
+  yPosition = addText(resumeStore.resumeData.jobTitle, margin, yPosition + 5, {
+    fontSize: 14,
+    fontStyle: 'italic'
+  });
+  
+  // Contact information
+  const contactInfo = [
+    resumeStore.resumeData.email,
+    resumeStore.resumeData.phone,
+    `${resumeStore.resumeData.address}, ${resumeStore.resumeData.city}, ${resumeStore.resumeData.postalCode}`,
+    resumeStore.resumeData.country
+  ].filter(Boolean).join(' | ');
+  
+  yPosition = addText(contactInfo, margin, yPosition + 6, {
+    fontSize: 9
+  });
+  
+  // Divider line
+  yPosition += 5;
+  doc.setLineWidth(0.5);
+  doc.line(margin, yPosition, pageWidth - margin, yPosition);
+  yPosition += 5;
+  
+  // Summary section
+  if (resumeStore.resumeData.summary) {
+    yPosition = addText('PROFESSIONAL SUMMARY', margin, yPosition + 5, {
+      fontSize: 12,
+      fontStyle: 'bold'
+    });
+    
+    yPosition = addText(resumeStore.resumeData.summary, margin, yPosition + 4);
+    yPosition += 5;
+  }
+  
+  // Experience section
+  if (resumeStore.resumeData.employmentHistory && resumeStore.resumeData.employmentHistory.length > 0) {
+    yPosition = addText('WORK EXPERIENCE', margin, yPosition + 5, {
+      fontSize: 12,
+      fontStyle: 'bold'
+    });
+    
+    resumeStore.resumeData.employmentHistory.forEach(job => {
+      // Check for page overflow
+      if (yPosition > 270) {
+        doc.addPage();
+        yPosition = margin;
+      }
+      
+      const dateRange = [
+        job.startDate ? new Date(job.startDate).toLocaleDateString('en-US', {year: 'numeric', month: 'short'}) : '',
+        job.endDate ? new Date(job.endDate).toLocaleDateString('en-US', {year: 'numeric', month: 'short'}) : 'Present'
+      ].filter(Boolean).join(' - ');
+      
+      yPosition = addText(`${job.jobTitle} at ${job.company}`, margin, yPosition + 5, {
+        fontSize: 11,
+        fontStyle: 'bold'
+      });
+      
+      yPosition = addText(`${dateRange} | ${job.city}`, margin, yPosition + 4, {
+        fontSize: 9,
+        fontStyle: 'italic'
+      });
+      
+      yPosition = addText(job.description, margin, yPosition + 4);
+      yPosition += 3;
+    });
+  }
+  
+  // Education section
+  if (resumeStore.resumeData.education && resumeStore.resumeData.education.length > 0) {
+    // Check for page overflow
+    if (yPosition > 270) {
+      doc.addPage();
+      yPosition = margin;
+    }
+    
+    yPosition = addText('EDUCATION', margin, yPosition + 5, {
+      fontSize: 12,
+      fontStyle: 'bold'
+    });
+    
+    resumeStore.resumeData.education.forEach(edu => {
+      const dateRange = [
+        edu.startDate ? new Date(edu.startDate).toLocaleDateString('en-US', {year: 'numeric', month: 'short'}) : '',
+        edu.endDate ? new Date(edu.endDate).toLocaleDateString('en-US', {year: 'numeric', month: 'short'}) : 'Present'
+      ].filter(Boolean).join(' - ');
+      
+      yPosition = addText(`${edu.degree}`, margin, yPosition + 5, {
+        fontSize: 11,
+        fontStyle: 'bold'
+      });
+      
+      yPosition = addText(`${edu.school} | ${dateRange} | ${edu.city}`, margin, yPosition + 4, {
+        fontSize: 9,
+        fontStyle: 'italic'
+      });
+      
+      yPosition = addText(edu.description, margin, yPosition + 4);
+      yPosition += 3;
+    });
+  }
+  
+  // Skills section
+  if (resumeStore.resumeData.skills && resumeStore.resumeData.skills.length > 0) {
+    // Check for page overflow
+    if (yPosition > 270) {
+      doc.addPage();
+      yPosition = margin;
+    }
+    
+    yPosition = addText('SKILLS', margin, yPosition + 5, {
+      fontSize: 12,
+      fontStyle: 'bold'
+    });
+    
+    // Organize skills by level
+    const skillsByLevel = {
+      'Expert': [],
+      'Intermediate': [],
+      'Beginner': []
+    };
+    
+    resumeStore.resumeData.skills.forEach(skill => {
+      if (skill.level && skillsByLevel[skill.level]) {
+        skillsByLevel[skill.level].push(skill.skill);
+      }
+    });
+    
+    // Display skills by level
+    Object.entries(skillsByLevel).forEach(([level, skills]) => {
+      if (skills.length > 0) {
+        yPosition = addText(`${level}:`, margin, yPosition + 4, {
+          fontSize: 10,
+          fontStyle: 'bold'
+        });
+        
+        yPosition = addText(skills.join(', '), margin + 5, yPosition + 4);
+      }
+    });
+  }
+  
+  // Save the PDF
+  const fileName = `${resumeStore.resumeData.name}_${resumeStore.resumeData.lastName}_Resume.pdf`;
+  doc.save(fileName);
+  
+  console.log('PDF successfully generated');
 }
 
 </script>
