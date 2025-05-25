@@ -1,6 +1,6 @@
 <script setup>
-import Login from '../Components/Login.vue'
-import Register from '../Components/Register.vue'
+import Login from '../components/Login.vue'
+import Register from '../components/Register.vue'
 import { useAuthStore } from '@/stores/auth'
 import { computed } from 'vue'
 

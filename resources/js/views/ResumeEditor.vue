@@ -170,7 +170,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
 import { useResumeStore } from '@/stores/resume'
-import QuillEditor from '@/Components/form/QuillEditor.vue'
+import QuillEditor from '@/components/form/QuillEditor.vue'
 import html2pdf from 'html2pdf.js'
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
@@ -221,6 +221,7 @@ function handleNext() {
     if (step.value < totalSteps.value) {
         step.value++
     } else {
+      resumeStore.saveResume(resumeStore.resumeData)
         console.log('Save to backend:', resumeStore.resumeData)
     }
 }

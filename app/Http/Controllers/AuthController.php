@@ -25,8 +25,9 @@ class AuthController extends Controller
         Auth::login($user); // 🔐 Session-based login
 
         return response()->json([
-            'message' => 'Login successful',
-            'user' => $user
+           'success' => true,
+                'message' => 'Login successful',
+                'user' => $user,
         ]);
     }
 

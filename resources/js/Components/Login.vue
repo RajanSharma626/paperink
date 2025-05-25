@@ -50,27 +50,40 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import axios from 'axios'
-import { useAuthStore } from '@/stores/auth'
+import { ref, onMounted } from 'vue';
+import { useAuthStore } from '@/stores/auth';
+import axios from 'axios';
+import bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min.js';
 
-import bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min.js'
+const email = ref('');
+const password = ref('');
+const error = ref('');
+const auth = useAuthStore();
+const modalEl = ref(null);
+let bootstrapModal = null;
 
-const email = ref('')
-const password = ref('')
-const error = ref('')
-const auth = useAuthStore()
-const modalEl = ref(null)
-let bootstrapModal = null
+// Expose methods so parent components can control the modal
+defineExpose({
+    show: () => {
+        if (bootstrapModal) {
+            bootstrapModal.show();
+        }
+    },
+    hide: () => {
+        if (bootstrapModal) {
+            bootstrapModal.hide();
+        }
+    }
+});
 
 // Initialize the Bootstrap modal after component is mounted
 onMounted(() => {
     if (modalEl.value) {
-        // Use the globally imported Bootstrap
-        bootstrapModal = new bootstrap.Modal(modalEl.value)
+        bootstrapModal = new bootstrap.Modal(modalEl.value);
     }
-})
+});
 
+// Method to handle login
 const loginUser = async () => {
     try {
         const res = await axios.post('/api/login', {
@@ -78,29 +91,20 @@ const loginUser = async () => {
             password: password.value,
         });
 
-        // Login the user and store the user data and token in auth store
+        // Store the user data in the Pinia store and authenticate the user
         auth.login(res.data.user);
 
-        // Hide the modal
+        // Hide the modal after successful login
         if (bootstrapModal) {
             bootstrapModal.hide();
-        } else {
-            // Fallback method if modal instance isn't available
-            const modalElement = document.getElementById('loginModal');
-            if (modalElement) {
-                const modalInstance = bootstrap.Modal.getInstance(modalElement);
-                modalInstance?.hide();
-            }
         }
 
         // Reset form values
         email.value = '';
         password.value = '';
         error.value = '';
-
     } catch (err) {
         console.error(err);
-        // Display error if login fails
         error.value = err.response?.data?.message || 'Login failed';
     }
 };
