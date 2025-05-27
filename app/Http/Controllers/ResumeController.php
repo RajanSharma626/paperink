@@ -9,56 +9,38 @@ use App\Models\Skill;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class ResumeController extends Controller
 {
     public function store(Request $request)
     {
-        // $validator = Validator::make($request->all(), [
-        //     'name' => 'required|string|max:255',
-        //     'lastName' => 'required|string|max:255',
-        //     'email' => 'required|email|max:255',
-        //     'phone' => 'nullable|string|max:20',
-        //     'address' => 'nullable|string|max:500',
-        //     'city' => 'nullable|string|max:255',
-        //     'postalCode' => 'nullable|string|max:20',
-        //     'country' => 'nullable|string|max:255',
-        //     'jobTitle' => 'nullable|string|max:255',
-        //     'summary' => 'nullable|string',
-        //     'employmentHistory' => 'nullable|array',
-        //     'employmentHistory.*.jobTitle' => 'required|string|max:255',
-        //     'employmentHistory.*.company' => 'required|string|max:255',
-        //     'employmentHistory.*.startDate' => 'nullable|date',
-        //     'employmentHistory.*.endDate' => 'nullable|date',
-        //     'employmentHistory.*.city' => 'nullable|string|max:255',
-        //     'employmentHistory.*.description' => 'nullable|string',
-        //     'education' => 'nullable|array',
-        //     'education.*.school' => 'required|string|max:255',
-        //     'education.*.degree' => 'required|string|max:255',
-        //     'education.*.startDate' => 'nullable|date',
-        //     'education.*.endDate' => 'nullable|date',
-        //     'education.*.city' => 'nullable|string|max:255',
-        //     'education.*.description' => 'nullable|string',
-        //     'skills' => 'nullable|array',
-        //     'skills.*.skill' => 'required|string|max:255',
-        //     'skills.*.level' => 'required|in:Beginner,Intermediate,Expert',
-        // ]);
-
-        // if ($validator->fails()) {
-        //     return response()->json([
-        //         'success' => false,
-        //         'message' => 'Validation failed',
-        //         'errors' => $validator->errors()
-        //     ], 422);
-        // }
+        // Log the incoming request for debugging
+        // Log::info('Resume store request received', $request->all());
 
         try {
+            // Simple validation first
+            $validator = Validator::make($request->all(), [
+                'name' => 'required|string|max:255',
+                'lastName' => 'required|string|max:255',
+                'email' => 'required|email|max:255',
+            ]);
+
+            if ($validator->fails()) {
+                Log::error('Validation failed', $validator->errors()->toArray());
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
             DB::beginTransaction();
 
-            // Create or update resume
+            // Create basic resume first
             $resume = Resume::create([
-                'user_id' => Auth::id(), // assuming you have authentication
+                'user_id' => Auth::id(), // Authenticated user ID
                 'name' => $request->name,
                 'last_name' => $request->lastName,
                 'email' => $request->email,
@@ -71,45 +53,54 @@ class ResumeController extends Controller
                 'summary' => $request->summary,
             ]);
 
-            // Save employment history
-            if ($request->has('employmentHistory') && is_array($request->employmentHistory)) {
+            // Log::info('Resume created with ID: ' . $resume->id);
+
+            // Only process arrays if they exist and are not empty
+            if ($request->filled('employmentHistory') && is_array($request->employmentHistory)) {
                 foreach ($request->employmentHistory as $employment) {
-                    Experience::create([
-                        'resume_id' => $resume->id,
-                        'job_title' => $employment['jobTitle'],
-                        'company' => $employment['company'],
-                        'start_date' => $employment['startDate'] ? date('Y-m-d', strtotime($employment['startDate'] . '-01')) : null,
-                        'end_date' => $employment['endDate'] ? date('Y-m-d', strtotime($employment['endDate'] . '-01')) : null,
-                        'city' => $employment['city'] ?? null,
-                        'description' => $employment['description'] ?? null,
-                    ]);
+                    if (isset($employment['jobTitle']) && isset($employment['company'])) {
+                        Experience::create([
+                            'resume_id' => $resume->id,
+                            'job_title' => $employment['jobTitle'],
+                            'company' => $employment['company'],
+                            'start_date' => $this->parseDate($employment['startDate'] ?? null),
+                            'end_date' => $this->parseDate($employment['endDate'] ?? null),
+                            'city' => $employment['city'] ?? null,
+                            'description' => $employment['description'] ?? null,
+                        ]);
+                    }
                 }
+                // Log::info('Employment history processed');
             }
 
-            // Save education
-            if ($request->has('education') && is_array($request->education)) {
+            if ($request->filled('education') && is_array($request->education)) {
                 foreach ($request->education as $edu) {
-                    Education::create([
-                        'resume_id' => $resume->id,
-                        'school' => $edu['school'],
-                        'degree' => $edu['degree'],
-                        'start_date' => $edu['startDate'] ? date('Y-m-d', strtotime($edu['startDate'] . '-01')) : null,
-                        'end_date' => $edu['endDate'] ? date('Y-m-d', strtotime($edu['endDate'] . '-01')) : null,
-                        'city' => $edu['city'] ?? null,
-                        'description' => $edu['description'] ?? null,
-                    ]);
+                    if (isset($edu['school']) && isset($edu['degree'])) {
+                        Education::create([
+                            'resume_id' => $resume->id,
+                            'school' => $edu['school'],
+                            'degree' => $edu['degree'],
+                            'start_date' => $this->parseDate($edu['startDate'] ?? null),
+                            'end_date' => $this->parseDate($edu['endDate'] ?? null),
+                            'location' => $edu['city'] ?? null,
+                            'description' => $edu['description'] ?? null,
+                        ]);
+                    }
                 }
+                // Log::info('Education processed');
             }
 
-            // Save skills
-            if ($request->has('skills') && is_array($request->skills)) {
+            if ($request->filled('skills') && is_array($request->skills)) {
                 foreach ($request->skills as $skill) {
-                    Skill::create([
-                        'resume_id' => $resume->id,
-                        'skill_name' => $skill['skill'],
-                        'level' => $skill['level'],
-                    ]);
+                    if (isset($skill['skill']) && isset($skill['level'])) {
+                        Skill::create([
+                            'resume_id' => $resume->id,
+                            'skill_name' => $skill['skill'],
+                            'level' => $skill['level'],
+                        ]);
+                    }
                 }
+                // Log::info('Skills processed');
             }
 
             DB::commit();
@@ -119,11 +110,13 @@ class ResumeController extends Controller
                 'message' => 'Resume saved successfully',
                 'data' => [
                     'resume_id' => $resume->id,
-                    'resume' => $resume->load(['experiences', 'education', 'skills'])
+                    'resume' => $resume
                 ]
             ], 201);
         } catch (\Exception $e) {
             DB::rollback();
+            Log::error('Error saving resume: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
 
             return response()->json([
                 'success' => false,
@@ -133,12 +126,34 @@ class ResumeController extends Controller
         }
     }
 
+    private function parseDate($dateString)
+    {
+        if (empty($dateString)) {
+            return null;
+        }
+
+        try {
+            // Handle different date formats
+            if (preg_match('/^\d{4}-\d{2}$/', $dateString)) {
+                // Format: 2024-01
+                return date('Y-m-d', strtotime($dateString . '-01'));
+            } elseif (preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateString)) {
+                // Format: 2024-01-15
+                return $dateString;
+            } else {
+                // Try to parse other formats
+                return date('Y-m-d', strtotime($dateString));
+            }
+        } catch (\Exception $e) {
+            Log::warning('Could not parse date: ' . $dateString);
+            return null;
+        }
+    }
+
     public function show($id)
     {
         try {
-            $resume = Resume::with(['experiences', 'education', 'skills'])
-                ->where('user_id', auth()->id())
-                ->findOrFail($id);
+            $resume = Resume::with(['experiences', 'education', 'skills'])->findOrFail($id);
 
             return response()->json([
                 'success' => true,
