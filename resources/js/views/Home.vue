@@ -11,7 +11,7 @@
                         PaperInk.io is the platform uses leading AI to automate every aspect of creating a resume,
                         cover letter, and portfolio. It’s the easiest way to get hired.
                     </p>
-                    <button class="btn theme-btn px-4 rounded-3">Create Resume</button>
+                    <router-link class="btn theme-btn px-4 rounded-3" to="/resume">Create Resume</router-link>
 
                     <p class="pt-3 mb-0">Get Hired In Top Companies</p>
                     <img src="https://paperink.io/img/core-img/company.svg" class="img-fluid" alt="">
@@ -69,9 +69,8 @@
                         PNG
                         Formate</div>
                     <div class="mt-4">
-                        <a href="https://paperink.io/resume-templates"
-                            class="btn my-second-outline-btn py-2 px-3">Explore Resume
-                            Templates</a>
+                        <router-link to="/resume" class="btn my-second-outline-btn py-2 px-3">Explore Resume
+                            Templates</router-link>
                     </div>
                 </div>
             </div>
@@ -94,8 +93,8 @@
                         PNG
                         Formate</div>
                     <div class="mt-4">
-                        <a href="cover-letter-templates" class="btn my-second-outline-btn py-2 px-3">Explore Cover
-                            Letters</a>
+                        <router-link to="/cover-letter" class="btn my-second-outline-btn py-2 px-3">Explore Cover
+                            letter</router-link>
                     </div>
                 </div>
                 <div class="col-lg-6 col-12 mb-5 mb-lg-0">
@@ -159,7 +158,7 @@
             </div>
         </div>
     </section>
-<hr>
+    <hr>
 
     <section class="comment-section">
         <div class="container py-5">
@@ -384,7 +383,7 @@
         </div>
     </section>
 
-<hr>
+    <hr>
     <section class="faq-section">
         <div class="container-fluid py-5">
 
@@ -396,11 +395,14 @@
                     <div class="accordion" id="accordionExample">
                         <div class="accordion-item">
                             <h2 class="accordion-header">
-                                <button class="accordion-button collapsed faq-bg" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                <button class="accordion-button collapsed faq-bg" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false"
+                                    aria-controls="collapseThree">
                                     What Service does PaperInk.io offer?
                                 </button>
                             </h2>
-                            <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+                            <div id="collapseThree" class="accordion-collapse collapse"
+                                data-bs-parent="#accordionExample">
                                 <div class="accordion-body faq-bg">
                                     PaperInk.io offers services for creating ATS-friendly resumes, cover letters, and
                                     personalized websites tailored for job seekers.
@@ -411,11 +413,14 @@
                         <div class="accordion mt-2" id="accordionExample">
                             <div class="accordion-item">
                                 <h2 class="accordion-header">
-                                    <button class="accordion-button collapsed faq-bg" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                    <button class="accordion-button collapsed faq-bg" type="button"
+                                        data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false"
+                                        aria-controls="collapseTwo">
                                         How can i contact PaperInk.io for support or inquires?
                                     </button>
                                 </h2>
-                                <div id="collapseTwo" class="accordion-collapse collapse " data-bs-parent="#accordionExample">
+                                <div id="collapseTwo" class="accordion-collapse collapse "
+                                    data-bs-parent="#accordionExample">
                                     <div class="accordion-body faq-bg">
                                         Users can reach out to PaperInk.io for support or inquiries through the contact
                                         form
@@ -428,11 +433,14 @@
                     <div class="accordion mt-2" id="accordionExample3">
                         <div class="accordion-item">
                             <h2 class="accordion-header">
-                                <button class="accordion-button collapsed faq-bg" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                                <button class="accordion-button collapsed faq-bg" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false"
+                                    aria-controls="collapseFour">
                                     Can I create A Personalized Website through PaperInk.io?
                                 </button>
                             </h2>
-                            <div id="collapseFour" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+                            <div id="collapseFour" class="accordion-collapse collapse"
+                                data-bs-parent="#accordionExample">
                                 <div class="accordion-body faq-bg">
                                     Yes, PaperInk.io provides tools for users to create personalized websites to
                                     showcase their professional portfolios and accomplishments.
@@ -444,11 +452,14 @@
                     <div class="accordion mt-2" id="accordionExample2">
                         <div class="accordion-item">
                             <h2 class="accordion-header">
-                                <button class="accordion-button collapsed faq-bg" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
+                                <button class="accordion-button collapsed faq-bg" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false"
+                                    aria-controls="collapseFive">
                                     Is there a fee for using PaperInk.io's services?
                                 </button>
                             </h2>
-                            <div id="collapseFive" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+                            <div id="collapseFive" class="accordion-collapse collapse"
+                                data-bs-parent="#accordionExample">
                                 <div class="accordion-body faq-bg">
                                     PaperInk.io may offer both free and premium services. Users can access basic
                                     features for free, while premium features may require a subscription or one-time

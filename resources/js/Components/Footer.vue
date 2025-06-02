@@ -20,24 +20,24 @@
                         </div>
                         <div class="col-lg-3 col-4">
                             <h6 class="fs-6 fw-bold second-clr">Our Services</h6>
-                            <p class="mb-1"><a href="/resume-templates">Resume</a></p>
-                            <p class="mb-1"><a href="/cover-letter-templates">Cover Letter</a></p>
-                            <p class="mb-1"><a href="/portfolio-template">Portfolio</a></p>
-                            <p class="mb-1"><a href="/affiliate">Affiliate</a></p>
+                            <p class="mb-1"><router-link to="/resume">Resume</router-link></p>
+                            <p class="mb-1"><router-link to="/cover-letter">Cover Letter</router-link></p>
+                            <!-- <p class="mb-1"><router-link href="/portfolio-template">Portfolio</router-link></p>
+                            <p class="mb-1"><router-link href="/affiliate">Affiliate</router-link></p> -->
                         </div>
                         <div class="col-lg-3 col-4">
                             <h6 class="fs-6 fw-bold second-clr">Navigate</h6>
-                            <p class="mb-1"><a href="/dashboard">Home</a></p>
-                            <p class="mb-1"><a href="/about">About us</a></p>
+                            <p class="mb-1"><router-link to="/">Home</router-link></p>
+                            <!-- <p class="mb-1"><a href="/about">About us</a></p>
                             <p class="mb-1"><a href="/pricing">Pricing</a></p>
-                            <p class="mb-1"><a href="/faq">FAQ</a></p>
+                            <p class="mb-1"><a href="/faq">FAQ</a></p> -->
                         </div>
                         <div class="col-lg-3 col-4">
                             <h6 class="fs-6 fw-bold second-clr">Support</h6>
-                            <p class="mb-1"><a href="/privacy-policy">Privacy Policy</a></p>
+                            <!-- <p class="mb-1"><a href="/privacy-policy">Privacy Policy</a></p>
                             <p class="mb-1"><a href="/contact-us">Contact Us</a></p>
                             <p class="mb-1"><a href="/coaching">Career Coaching</a></p>
-                            <p class="mb-1"><a href="/blogs">Blogs</a></p>
+                            <p class="mb-1"><a href="/blogs">Blogs</a></p> -->
                         </div>
                     </div>
                 </div>

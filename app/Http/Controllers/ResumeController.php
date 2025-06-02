@@ -40,7 +40,7 @@ class ResumeController extends Controller
 
             // Create basic resume first
             $resume = Resume::create([
-                'user_id' => Auth::id(), // Authenticated user ID
+                'user_id' => $request->user_id, // Authenticated user ID
                 'name' => $request->name,
                 'last_name' => $request->lastName,
                 'email' => $request->email,

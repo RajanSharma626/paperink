@@ -28,12 +28,6 @@ const userName = computed(() => auth.user?.name || 'User')
                     <li class="nav-item mx-2">
                         <router-link class="nav-link fw-semibold" to="/cover-letter">Cover Letter</router-link>
                     </li>
-                    <li class="nav-item mx-2">
-                        <a class="nav-link fw-semibold" href="#">Services</a>
-                    </li>
-                    <li class="nav-item mx-2">
-                        <a class="nav-link fw-semibold" href="#">Pricing</a>
-                    </li>
 
                     <!-- Show Profile Circle if Authenticated -->
                     <li v-if="auth.isAuthenticated" class="nav-item dropdown">

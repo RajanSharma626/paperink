@@ -1,10 +1,12 @@
 import { defineStore } from "pinia";
 import { reactive } from "vue";
 import axios from 'axios';
+import { useAuthStore } from './auth'; // Import the auth store
 
 export const useResumeStore = defineStore("resume", {
     state: () => ({
         resumeData: reactive({
+            user_id: null, // Add user_id to resumeData
             name: "",
             lastName: "",
             email: "",
@@ -31,10 +33,17 @@ export const useResumeStore = defineStore("resume", {
             this.error = null;
 
             try {
-                const response = await axios.post("/api/resumes/store", data);
+                const authStore = useAuthStore();
+                // Add user_id from auth store's user
+                const resumeDataWithUser = {
+                    ...data,
+                    user_id: authStore.user?.id || null,
+                };
+
+                const response = await axios.post("/api/resumes/store", resumeDataWithUser);
 
                 if (response.data.success) {
-                    this.resumeData = { ...data };
+                    this.resumeData = { ...data, user_id: resumeDataWithUser.user_id }; // Set user_id in resumeData
                     this.savedResumeId = response.data.data.resume_id;
 
                     return {

@@ -34,13 +34,13 @@
                             <button type="submit" class="btn theme-btn w-100 mb-3">Log In</button>
                             <div v-if="error" class="alert alert-danger mt-3">{{ error }}</div>
 
-                            <div class="text-center my-3">OR</div>
+                            <!-- <div class="text-center my-3">OR</div>
                             <div class="d-flex justify-content-center gap-3">
                                 <a href="#"><img src="https://img.icons8.com/color/48/000000/google-logo.png"
                                         width="32" /></a>
                                 <a href="#"><img src="https://img.icons8.com/color/48/000000/linkedin.png"
                                         width="32" /></a>
-                            </div>
+                            </div> -->
                         </form>
                     </div>
                 </div>
