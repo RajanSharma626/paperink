@@ -44,7 +44,7 @@ const userName = computed(() => auth.user?.name || 'User')
                             <li>
                                 <hr class="dropdown-divider" />
                             </li>
-                            <li><a class="dropdown-item" href="/dashboard">Dashboard</a></li>
+                            <li><router-link class="dropdown-item" to="/dashboard">Dashboard</router-link></li>
                             <li><a class="dropdown-item" href="/account">My Account</a></li>
                             <li>
                                 <hr class="dropdown-divider" />

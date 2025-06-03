@@ -41,17 +41,22 @@ class Resume extends Model
 
     public function experiences()
     {
-        return $this->hasMany(Experience::class)->orderBy('start_date', 'desc');
+        return $this->hasMany(Experience::class, 'resume_id')->orderBy('start_date', 'desc');
     }
 
     public function education()
     {
-        return $this->hasMany(Education::class)->orderBy('start_date', 'desc');
+        return $this->hasMany(Education::class, 'resume_id')->orderBy('start_date', 'desc');
     }
 
     public function skills()
     {
-        return $this->hasMany(Skill::class)->orderBy('level', 'desc');
+        return $this->hasMany(Skill::class, 'resume_id')->orderBy('level', 'desc');
+    }
+
+    public function template()
+    {
+        return $this->belongsTo(ResumeTemplate::class, 'slug');
     }
 
     // Accessor for full name

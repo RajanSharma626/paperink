@@ -221,7 +221,7 @@ function handleNext() {
     if (step.value < totalSteps.value) {
         step.value++
     } else {
-      resumeStore.saveResume(resumeStore.resumeData)
+      resumeStore.saveResume(resumeStore.resumeData, route.params.template)
         console.log('Save to backend:', resumeStore.resumeData)
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Education;
 use App\Models\Experience;
 use App\Models\Resume;
+use App\Models\ResumeTemplate;
 use App\Models\Skill;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -38,6 +39,9 @@ class ResumeController extends Controller
 
             DB::beginTransaction();
 
+            $template = ResumeTemplate::where('slug', $request->template_id)
+                ->first();
+
             // Create basic resume first
             $resume = Resume::create([
                 'user_id' => $request->user_id, // Authenticated user ID
@@ -51,6 +55,7 @@ class ResumeController extends Controller
                 'country' => $request->country,
                 'job_title' => $request->jobTitle,
                 'summary' => $request->summary,
+                'template_id' => $template->id
             ]);
 
             // Log::info('Resume created with ID: ' . $resume->id);
@@ -164,6 +169,38 @@ class ResumeController extends Controller
                 'success' => false,
                 'message' => 'Resume not found'
             ], 404);
+        }
+    }
+
+    public function myResume(Request $request)
+    {
+        $userId = $request->user_id;
+
+        if (!$userId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not authenticated'
+            ], 401);
+        }
+
+        try {
+            $resume = Resume::with(['experiences', 'education', 'skills', 'template'])
+                ->where('user_id', $userId)
+                ->get();
+
+            Log::info('Data ' . $resume);
+            return response()->json([
+                'success' => true,
+                'data' => $resume
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Resume fetch failed: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Resume not found',
+                'error' => $e->getMessage() // optional: return in dev only
+            ], 500);
         }
     }
 }

@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { reactive } from "vue";
-import axios from 'axios';
-import { useAuthStore } from './auth'; // Import the auth store
+import axios from "axios";
+import { useAuthStore } from "./auth"; // Import the auth store
 
 export const useResumeStore = defineStore("resume", {
     state: () => ({
@@ -28,22 +28,30 @@ export const useResumeStore = defineStore("resume", {
     }),
     actions: {
         // Save resume to database
-        async saveResume(data) {
+        async saveResume(data, template_id = null) {
             this.loading = true;
             this.error = null;
 
             try {
                 const authStore = useAuthStore();
-                // Add user_id from auth store's user
+                // Add user_id and template_id to resume data
                 const resumeDataWithUser = {
                     ...data,
                     user_id: authStore.user?.id || null,
+                    template_id: template_id,
                 };
 
-                const response = await axios.post("/api/resumes/store", resumeDataWithUser);
+                const response = await axios.post(
+                    "/api/resumes/store",
+                    resumeDataWithUser
+                );
 
                 if (response.data.success) {
-                    this.resumeData = { ...data, user_id: resumeDataWithUser.user_id }; // Set user_id in resumeData
+                    this.resumeData = {
+                        ...data,
+                        user_id: resumeDataWithUser.user_id,
+                        template_id,
+                    }; // Set user_id and template_id in resumeData
                     this.savedResumeId = response.data.data.resume_id;
 
                     return {
