@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\View;
+use Mpdf\Mpdf;
 
 class ResumeController extends Controller
 {
@@ -202,5 +204,33 @@ class ResumeController extends Controller
                 'error' => $e->getMessage() // optional: return in dev only
             ], 500);
         }
+    }
+
+
+    public function generatePDF(Request $request)
+    {
+        $resume = json_decode(json_encode($request->all())); // Convert stdClass for Blade access
+
+        $html = View::make('resume.pdf', ['resume' => $resume])->render();
+
+        $mpdf = new Mpdf([
+            'format' => 'A4',
+            'margin_left' => 10,
+            'margin_right' => 10,
+            'margin_top' => 10,
+            'margin_bottom' => 10,
+        ]);
+
+        $mpdf->SetTitle("{$resume->name} {$resume->lastName} - Resume");
+        $mpdf->SetAuthor("{$resume->name} {$resume->lastName}");
+        $mpdf->SetSubject('Professional Resume');
+        $mpdf->SetKeywords('resume, cv, ' . $resume->jobTitle);
+        $mpdf->SetCreator('Resume Builder');
+
+        $mpdf->WriteHTML($html);
+
+        return response($mpdf->Output('', 'S'), 200)
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'attachment; filename="resume.pdf"');
     }
 }

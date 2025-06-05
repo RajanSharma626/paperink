@@ -12,6 +12,10 @@ Route::get('/cover-templates', [CoverTemplateController::class, 'index']);
 Route::get('/editor/{template}', [ResumeEditorController::class, 'show'])->name('editor.show');
 Route::post('/my-resume', [ResumeController::class, 'myResume']);
 
+// routes/web.php or routes/api.php
+Route::post('/generate-resume-pdf', [ResumeController::class, 'generatePDF']);
+
+
 
 Route::get('{any}', function () {
     return view('app'); // This is catching everything currently

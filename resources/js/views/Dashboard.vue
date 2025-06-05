@@ -1,57 +1,3 @@
-<script setup>
-import { ref } from 'vue'
-import { useAuthStore } from '@/stores/auth'
-
-const activeTab = ref('resume')
-
-const auth = useAuthStore()
-const userInitial = ref(auth.user?.name?.charAt(0).toUpperCase() || 'U')
-
-const tabs = [
-    { id: 'resume', name: 'Resume' },
-    { id: 'cover-letter', name: 'Cover Letter' },
-    { id: 'portfolio', name: 'Portfolio' }
-]
-
-const resumes = ref([]);
-
-// Fetch the resume templates from the server
-const fetchResume = () => {
-    // Ensure user is loaded and has an id
-    const userId = auth.user?.id;
-    if (!userId) {
-        console.error('User ID not found');
-        return;
-    }
-    fetch('/my-resume', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-        },
-        body: JSON.stringify({ user_id: userId })
-    })
-        .then(response => response.text())
-        .then(text => {
-            try {
-                const data = JSON.parse(text);
-                resumes.value = data;  // Set the templates in the state
-                console.log('Resume data:', resumes.value);
-
-            } catch (e) {
-                console.error('Not valid JSON:', e);
-            }
-        })
-        .catch(error => {
-            console.error('Network error:', error);
-        });
-
-};
-
-fetchResume();
-
-</script>
-
 <template>
     <div class="bg-light min-vh-100 p-4">
         <div class="container-fluid">
@@ -92,7 +38,7 @@ fetchResume();
                         <div :class="['tab-pane fade', { 'show active': activeTab === 'resume' }]" id="resume"
                             role="tabpanel">
 
-                            <div v-if="resumes.length > 0" class="text-center py-5 text-muted">
+                            <div v-if="resumes.length === 0" class="text-center py-5 text-muted">
                                 <h5>Resume Templates</h5>
                                 <p>Resume templates will be displayed here</p>
                             </div>
@@ -121,49 +67,12 @@ fetchResume();
 
                                 <!-- Resume Template 1 -->
                                 <div v-for="resume in resumes" :key="resume.id" class="col-12 col-sm-6 col-lg-3">
-                                    <div class="card h-100 shadow-sm" style="min-height: 320px; aspect-ratio: 3/4;">
+                                    <div class="card h-100 shadow-sm">
                                         <div class="card-body p-3 d-flex flex-column justify-content-between">
                                             <div>
-                                                <img class="img-fluid rounded custom-boc-shadow"
+                                                <img :src="resume.template.preview_img"
+                                                    class="img-fluid rounded custom-boc-shadow"
                                                     alt="Template Preview" />
-                                            </div>
-                                        </div>
-                                        <div class="card-footer bg-light">
-                                            <div class="d-flex justify-content-center gap-2">
-                                                <button class="btn btn-sm btn-outline-primary">
-                                                    <svg width="16" height="16" fill="none" stroke="currentColor"
-                                                        viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                    </svg>
-                                                </button>
-                                                <button class="btn btn-sm btn-outline-success">
-                                                    <svg width="16" height="16" fill="none" stroke="currentColor"
-                                                        viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                    </svg>
-                                                </button>
-                                                <button class="btn btn-sm btn-outline-danger">
-                                                    <svg width="16" height="16" fill="none" stroke="currentColor"
-                                                        viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                    </svg>
-                                                </button>
-                                                <button class="btn btn-sm btn-outline-secondary">
-                                                    <svg width="16" height="16" fill="none" stroke="currentColor"
-                                                        viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                                    </svg>
-                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -194,6 +103,69 @@ fetchResume();
         </div>
     </div>
 </template>
+
+
+<script setup>
+import { ref } from 'vue'
+
+import { useAuthStore } from '@/stores/auth'
+
+ref(() => {
+    setTimeout(fetchResume, 100); // Small delay to ensure CSRF token is available
+});
+
+const activeTab = ref('resume')
+
+const auth = useAuthStore()
+const userInitial = ref(auth.user?.name?.charAt(0).toUpperCase() || 'U')
+
+const tabs = [
+    { id: 'resume', name: 'Resume' },
+    { id: 'cover-letter', name: 'Cover Letter' },
+    { id: 'portfolio', name: 'Portfolio' }
+]
+
+const resumes = ref([]);
+
+// Fetch the resume templates from the server
+const fetchResume = () => {
+    const userId = auth.user?.id;
+    if (!userId) {
+        console.error('User ID not found');
+        return;
+    }
+
+    fetch('/my-resume', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+        },
+        body: JSON.stringify({ user_id: userId })
+    })
+        .then(response => response.json()) // Parse as JSON directly
+        .then(data => {
+            if (data.success) {
+                resumes.value = data.data;  // Access the 'data' property from your API response
+                console.log('Resume data:', resumes.value);
+            } else {
+                console.error('API Error:', data.message);
+                resumes.value = []; // Ensure empty array on error
+            }
+        })
+        .catch(error => {
+            console.error('Network error:', error);
+            resumes.value = []; // Ensure empty array on error
+        });
+};
+
+import { onMounted } from 'vue'
+
+onMounted(() => {
+    fetchResume();
+});
+
+</script>
 
 
 

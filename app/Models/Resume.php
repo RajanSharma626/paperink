@@ -10,6 +10,8 @@ class Resume extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected $table = 'resumes';
+
     protected $fillable = [
         'user_id',
         'name',
@@ -56,7 +58,7 @@ class Resume extends Model
 
     public function template()
     {
-        return $this->belongsTo(ResumeTemplate::class, 'slug');
+        return $this->belongsTo(ResumeTemplate::class);
     }
 
     // Accessor for full name
