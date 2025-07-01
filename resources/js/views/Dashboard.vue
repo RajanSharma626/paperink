@@ -42,13 +42,12 @@
                                 <h5>Resume Templates</h5>
                                 <p>Resume templates will be displayed here</p>
                             </div>
-                            <div v-else class="row g-4">
+                            <div v-else class="row g-2">
 
                                 <!-- New Resume Card -->
                                 <div class="col-12 col-sm-6 col-lg-3">
                                     <router-link to="/resume" class="text-decoration-none">
-                                        <div class="card h-100 border-2 border-dashed text-center"
-                                            style="border-color: #dee2e6 !important; min-height: 320px; aspect-ratio: 3/4;">
+                                        <div class="card h-100 border-2 border-dashed text-center">
                                             <div
                                                 class="card-body d-flex flex-column align-items-center justify-content-center">
                                                 <div class="bg-light rounded-circle d-flex align-items-center justify-content-center mb-3"
@@ -67,8 +66,8 @@
 
                                 <!-- Resume Template 1 -->
                                 <div v-for="resume in resumes" :key="resume.id" class="col-12 col-sm-6 col-lg-3">
-                                    <div class="card h-100 shadow-sm">
-                                        <div class="card-body p-3 d-flex flex-column justify-content-between">
+                                    <div class="card h-100 border">
+                                        <div class="card-body d-flex flex-column justify-content-between">
                                             <div>
                                                 <img :src="resume.template.preview_img"
                                                     class="img-fluid rounded custom-boc-shadow"
@@ -83,9 +82,45 @@
                         <!-- Cover Letter Tab -->
                         <div :class="['tab-pane fade', { 'show active': activeTab === 'cover-letter' }]"
                             id="cover-letter" role="tabpanel">
-                            <div class="text-center py-5 text-muted">
+                            <div v-if="coverLetters.length === 0" class="text-center py-5 text-muted">
                                 <h5>Cover Letter Templates</h5>
                                 <p>Cover letter templates will be displayed here</p>
+                            </div>
+
+                            <div v-else class="row gap-2">
+
+                                <!-- New Cover letter Card -->
+                                 <div class="col-12 col-sm-6 col-lg-3">
+                                    <router-link to="/cover-letter" class="text-decoration-none">
+                                        <div class="card h-100 border-2 border-dashed text-center">
+                                            <div
+                                                class="card-body d-flex flex-column align-items-center justify-content-center">
+                                                <div class="bg-light rounded-circle d-flex align-items-center justify-content-center mb-3"
+                                                    style="width: 48px; height: 48px;">
+                                                    <svg class="text-secondary" width="24" height="24" fill="none"
+                                                        stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                                    </svg>
+                                                </div>
+                                                <span class="text-secondary fw-medium">New Cover Letter</span>
+                                            </div>
+                                        </div>
+                                    </router-link>
+                                </div>
+
+                                <!-- coverLetter Template 1 -->
+                                <div v-for="coverLetter in coverLetters" :key="coverLetter.id" class="col-12 col-sm-6 col-lg-3">
+                                    <div class="card h-100 border">
+                                        <div class="card-body d-flex p-0 flex-column justify-content-between">
+                                            <div>
+                                                <img :src="coverLetter.template.preview_img"
+                                                    class="img-fluid rounded custom-boc-shadow"
+                                                    alt="Template Preview" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -121,11 +156,11 @@ const userInitial = ref(auth.user?.name?.charAt(0).toUpperCase() || 'U')
 
 const tabs = [
     { id: 'resume', name: 'Resume' },
-    { id: 'cover-letter', name: 'Cover Letter' },
-    { id: 'portfolio', name: 'Portfolio' }
+    { id: 'cover-letter', name: 'Cover Letter' }
 ]
 
 const resumes = ref([]);
+const coverLetters = ref([]);
 
 // Fetch the resume templates from the server
 const fetchResume = () => {
@@ -159,10 +194,43 @@ const fetchResume = () => {
         });
 };
 
+// Fetch the resume templates from the server
+const fetchCover = () => {
+    const userId = auth.user?.id;
+    if (!userId) {
+        console.error('User ID not found');
+        return;
+    }
+
+    fetch('/my-cover', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+        },
+        body: JSON.stringify({ user_id: userId })
+    })
+        .then(response => response.json()) // Parse as JSON directly
+        .then(data => {
+            if (data.success) {
+                coverLetters.value = data.data;  // Access the 'data' property from your API response
+                console.log('Cover data:', coverLetters.value);
+            } else {
+                console.error('API Error:', data.message);
+                coverLetters.value = []; // Ensure empty array on error
+            }
+        })
+        .catch(error => {
+            console.error('Network error:', error);
+            coverLetters.value = []; // Ensure empty array on error
+        });
+};
+
 import { onMounted } from 'vue'
 
 onMounted(() => {
     fetchResume();
+    fetchCover();
 });
 
 </script>

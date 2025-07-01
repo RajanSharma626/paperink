@@ -12,6 +12,8 @@ export const useCoverStore = defineStore("cover", {
             company: "",
             hiringManager: "",
             letter: "",
+            user_id: null,
+            template_id: null,
         }),
     }),
 });

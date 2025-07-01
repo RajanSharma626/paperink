@@ -23,7 +23,7 @@ const routes = [
         name: "CoverEditor",
         component: CoverEditor,
     },
-    { path: "/dashboard", name: "Dashboard", component: Dashboard }, // Add this line
+    { path: "/dashboard", name: "Dashboard", component: Dashboard },
 ];
 
 const router = createRouter({

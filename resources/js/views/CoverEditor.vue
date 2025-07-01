@@ -2,9 +2,11 @@
     <div class="container-fluid">
         <div class="row justify-content-between">
             <div class="col"></div>
-            <div class="col"><button @click.prevent="downloadPDF" class="btn btn-outline-primary mt-3">
-                    Download Resume as PDF
+            <div class="col">
+                <button @click="downloadPdf" class="btn btn-outline-success">
+                    Download PDF
                 </button>
+
             </div>
         </div>
         <div class="row p-5">
@@ -50,7 +52,8 @@
                                 </div>
                                 <div class="col-6 mb-3">
                                     <label class="form-label">Hiring Manager Name</label>
-                                    <input class="form-custom" v-model="coverStore.coverData['hiringManager']" type="text" />
+                                    <input class="form-custom" v-model="coverStore.coverData['hiringManager']"
+                                        type="text" />
                                 </div>
                             </div>
                         </div>
@@ -62,6 +65,11 @@
                             <QuillEditor v-model="coverStore.coverData['letter']" />
                         </div>
                     </div>
+
+                    <button @click.prevent="saveCoverLetter" class="btn btn-success mt-3 ms-3">
+                        Save Cover Letter
+                    </button>
+
 
                 </form>
             </div>
@@ -90,12 +98,13 @@ import { useRoute } from 'vue-router'
 import axios from 'axios'
 import { useCoverStore } from '@/stores/cover'
 import QuillEditor from '@/Components/form/QuillEditor.vue'
-import html2pdf from 'html2pdf.js'
-
+import { useAuthStore } from "@/stores/auth";
 const route = useRoute()
 const templateId = route.params.template
 const coverStore = useCoverStore()
 const templateComponent = ref(null)
+
+const authStore = useAuthStore();
 
 const loadTemplate = async () => {
     try {
@@ -109,23 +118,155 @@ const loadTemplate = async () => {
 
 onMounted(loadTemplate)
 
-function downloadPDF() {
-    const element = document.getElementById('page') // 🔥 Your resume preview div
-    if (!element) {
-        alert('Cover Letter preview not found!')
-        return
+async function downloadPdf() {
+    try {
+        // Show loading state
+        const loadingBtn = document.querySelector('[data-loading]')
+        if (loadingBtn) {
+            loadingBtn.disabled = true
+            loadingBtn.innerHTML = 'Generating PDF...'
+        }
+
+        const payload = {
+            name: coverStore.coverData.name,
+            jobTitle: coverStore.coverData.jobTitle,
+            company: coverStore.coverData.company,
+            hiringManager: coverStore.coverData.hiringManager,
+            email: coverStore.coverData.email,
+            phone: coverStore.coverData.phone,
+            address: coverStore.coverData.address,
+            letter: coverStore.coverData.letter,
+        }
+
+        console.log('Generating PDF with data:', payload)
+
+        const response = await axios.post(
+            `/api/cover-letters/${route.params.template}/pdf`,
+            payload,
+            {
+                responseType: 'blob',
+                headers: {
+                    'Accept': 'application/pdf',
+                    'Content-Type': 'application/json'
+                },
+                timeout: 60000 // 60 second timeout
+            }
+        )
+
+        // Create download
+        const blob = new Blob([response.data], { type: 'application/pdf' })
+        const url = window.URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `${coverStore.coverData.name || 'cover-letter'}-${new Date().toISOString().split('T')[0]}.pdf`
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        window.URL.revokeObjectURL(url)
+
+        console.log('PDF downloaded successfully')
+
+    } catch (error) {
+        console.error('PDF generation failed:', error)
+
+        let errorMessage = 'Failed to generate PDF. Please try again.'
+        if (error.response?.status === 500) {
+            errorMessage = 'Server error while generating PDF. Please check your data and try again.'
+        } else if (error.code === 'ECONNABORTED') {
+            errorMessage = 'PDF generation timed out. Please try again.'
+        }
+
+        alert(errorMessage)
+    } finally {
+        const loadingBtn = document.querySelector('[data-loading]')
+        if (loadingBtn) {
+            loadingBtn.disabled = false
+            loadingBtn.innerHTML = 'Download PDF'
+        }
     }
+}
+
+// Server-side PDF using your Vue component
+async function downloadPdfServerSide() {
+    const payload = {
+        name: coverStore.coverData.name,
+        jobTitle: coverStore.coverData.jobTitle,
+        company: coverStore.coverData.company,
+        hiringManager: coverStore.coverData.hiringManager,
+        email: coverStore.coverData.email,
+        phone: coverStore.coverData.phone,
+        address: coverStore.coverData.address,
+        letter: coverStore.coverData.letter,
+    }
+
+    const response = await axios.post(
+        `/api/cover-letters/${route.params.template}/pdf`,
+        payload,
+        {
+            responseType: 'blob',
+            headers: { 'Accept': 'application/pdf' }
+        }
+    )
+
+    // Download the PDF
+    const blob = new Blob([response.data], { type: 'application/pdf' })
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `${coverStore.coverData.name || 'cover-letter'}.pdf`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+}
+
+// Client-side PDF with improved quality
+async function downloadPdfClientSide() {
+    const element = document.querySelector('.preview-scale')
+
+    // Temporarily remove transform for better rendering
+    const originalTransform = element.style.transform
+    element.style.transform = 'scale(1)'
 
     const opt = {
         margin: 0,
-        filename: 'My_Cover_Letter.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+        filename: `${coverStore.coverData.name || 'cover-letter'}.pdf`,
+        image: {
+            type: 'jpeg',
+            quality: 1,
+            crossOrigin: 'anonymous'
+        },
+        html2canvas: {
+            scale: 3, // Higher scale for better quality
+            useCORS: true,
+            letterRendering: true,
+            allowTaint: false,
+            backgroundColor: '#ffffff',
+            removeContainer: true,
+            onclone: (clonedDoc) => {
+                // Ensure all styles are applied to cloned document
+                const clonedElement = clonedDoc.querySelector('.preview-scale')
+                if (clonedElement) {
+                    clonedElement.style.transform = 'scale(1)'
+                }
+            }
+        },
+        jsPDF: {
+            unit: 'mm',
+            format: 'a4',
+            orientation: 'portrait',
+            compress: true
+        }
     }
 
-    html2pdf().from(element).set(opt).save()
+    await html2pdf().set(opt).from(element).save()
+
+    // Restore original transform
+    element.style.transform = originalTransform
 }
+
+
+
 
 </script>
 

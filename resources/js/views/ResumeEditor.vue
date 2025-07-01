@@ -2,34 +2,35 @@
   <div class="container-fluid">
     <div class="row justify-content-between">
       <div class="col"></div>
-      <div class="col"><button @click.prevent="downloadPDF" class="btn btn-outline-primary mt-3">
-          Download Resume as PDF
+      <div class="col">
+        <button @click.prevent="downloadPDF" class="btn btn-outline-primary mt-3" :disabled="isGeneratingPDF">
+          <span v-if="isGeneratingPDF">
+            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+            Generating PDF...
+          </span>
+          <span v-else>
+            <i class="bi bi-download me-2"></i>
+            Download Resume as PDF
+          </span>
         </button>
       </div>
     </div>
     <div class="row p-5">
-
       <!-- Left Side: Step Form -->
       <div class="col-6 border-end p-5 overflow-auto">
         <form @submit.prevent="handleNext">
           <div class="row">
             <template v-for="(field, index) in currentFields" :key="index">
-
               <!-- Text Input -->
               <div v-if="field.type === 'text'" class="col-6 mb-3">
                 <label class="form-label">{{ field.label }}</label>
                 <input v-model="resumeStore.resumeData[field.field]" class="form-custom" />
               </div>
-
               <!-- Rich Text Area (Summary and other descriptions) -->
               <div v-else-if="field.type === 'richtext'" class="col-12 mb-3">
                 <label class="form-label">{{ field.label }}</label>
-                <!-- <textarea v-model="resumeStore.resumeData[field.field]" class="form-custom">
-                                    </textarea> -->
                 <QuillEditor v-model="resumeStore.resumeData[field.field]" />
-
               </div>
-
               <!-- Employment History -->
               <div v-else-if="field.type === 'employment'" class="col-12 mb-3">
                 <div class="row">
@@ -52,8 +53,6 @@
                       </div>
                     </div>
                     <input v-model="job.city" class="form-custom mb-2" placeholder="City" />
-                    <!-- <textarea v-model="job.description" class="form-custom"
-                                            placeholder="Description"></textarea> -->
                     <QuillEditor v-model="job.description" />
                     <button @click.prevent="removeEmployment(jobIndex)" class="btn btn-danger btn-sm mt-2">
                       <i class="bi bi-trash3"></i> Remove
@@ -65,7 +64,6 @@
                   </div>
                 </div>
               </div>
-
               <!-- Education History -->
               <div v-else-if="field.type === 'education'" class="col-12 mb-3">
                 <div class="row">
@@ -82,8 +80,6 @@
                       </div>
                     </div>
                     <input v-model="edu.city" class="form-custom mb-2" placeholder="City" />
-                    <!-- <textarea v-model="edu.description" class="form-custom"
-                                            placeholder="Description"></textarea> -->
                     <QuillEditor v-model="edu.description" />
                     <button @click.prevent="removeEducation(eduIndex)" class="btn btn-danger btn-sm mt-2">
                       Remove
@@ -95,7 +91,6 @@
                   </div>
                 </div>
               </div>
-
               <!-- Skills -->
               <div v-else-if="field.type === 'skills'" class="col-12 mb-3">
                 <label>{{ field.label }}</label>
@@ -119,10 +114,8 @@
                   </div>
                 </div>
               </div>
-
             </template>
           </div>
-
           <!-- Navigation Buttons -->
           <div class="d-flex justify-content-between mt-4">
             <button v-if="step > 1" @click.prevent="handlePrev" class="btn btn-secondary">
@@ -137,7 +130,6 @@
           </div>
         </form>
       </div>
-
       <!-- Right Side: Live Preview -->
       <div class="col-6 bg-light preview-wrapper">
         <div v-if="!templateComponent" class="d-flex justify-content-center align-items-center" style="height: 100%;">
@@ -149,7 +141,6 @@
           <component :is="templateComponent" :resume="resumeStore.resumeData" />
         </div>
       </div>
-
     </div>
   </div>
 </template>
@@ -159,33 +150,80 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
 import { useResumeStore } from '@/stores/resume'
-import QuillEditor from '@/components/form/QuillEditor.vue'
-import html2pdf from 'html2pdf.js'
-import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import QuillEditor from '@/Components/form/QuillEditor.vue'
 
 const route = useRoute()
 const resumeStore = useResumeStore()
 const templateComponent = ref(null)
+const isGeneratingPDF = ref(false)
 
 const loadTemplate = async () => {
   try {
-    const { data } = await axios.get(`/api/resume-template/${route.params.template}`)
-    const componentName = data.component
-    templateComponent.value = (await import(`@/Components/templates/${componentName}.vue`)).default
+    const response = await axios.get(`/api/resume-template/${route.params.template}`)
+    const componentName = response.data.component
+    const module = await import(`@/components/templates/${componentName}.vue`)
+    templateComponent.value = module.default
   } catch (error) {
     console.error('Failed to load template:', error)
+    alert('Failed to load resume template. Please try again.')
   }
 }
 
 onMounted(loadTemplate)
 
+// PDF Generation Function using ChromeDP
+const downloadPDF = async () => {
+  if (isGeneratingPDF.value) return
+
+  try {
+    isGeneratingPDF.value = true
+
+    const filename = `${resumeStore.resumeData.name || 'resume'}_${resumeStore.resumeData.lastName || ''}_resume.pdf`.replace(/\s+/g, '_')
+
+    // Send resume data and template to Laravel backend for PDF generation
+    const response = await axios.post('/api/generate-pdf-chromedp', {
+      resume_data: resumeStore.resumeData,
+      template: route.params.template,
+      filename: filename
+    }, {
+      responseType: 'blob',
+      timeout: 30000 // 30 second timeout for PDF generation
+    })
+
+    // Create download link and trigger download
+    const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }))
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', filename)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+
+    // Show success message
+    console.log('PDF downloaded successfully')
+
+  } catch (error) {
+    console.error('PDF generation failed:', error)
+
+    // Better error handling
+    if (error.response && error.response.status === 500) {
+      alert('PDF generation failed on server. Please try again.')
+    } else if (error.code === 'ECONNABORTED') {
+      alert('PDF generation timed out. Please try again.')
+    } else {
+      alert('PDF generation failed. Please check your connection and try again.')
+    }
+  } finally {
+    isGeneratingPDF.value = false
+  }
+}
 
 // Stepper Logic
 const step = ref(1)
 
 const formSteps = [
-  [ // Step 1
+  [
     { field: 'name', label: 'First Name', type: 'text' },
     { field: 'lastName', label: 'Last Name', type: 'text' },
     { field: 'jobTitle', label: 'Job Title', type: 'text' },
@@ -238,8 +276,6 @@ function addSkill() {
 function removeSkill(index) {
   resumeStore.resumeData.skills.splice(index, 1)
 }
-
-
 </script>
 
 <style scoped>
@@ -274,11 +310,11 @@ label {
   padding: 10px;
   height: 100vh;
   background: #f8f9fa;
+  position: relative;
 }
 
 .preview-scale {
   transform: scale(0.7);
-  /* Adjust scale to fit */
   transform-origin: top center;
 }
 </style>

@@ -233,4 +233,12 @@ class ResumeController extends Controller
             ->header('Content-Type', 'application/pdf')
             ->header('Content-Disposition', 'attachment; filename="resume.pdf"');
     }
+
+
+    public function pdfPreview($id)
+    {
+        $resume = Resume::findOrFail($id); // contains user data + template slug
+
+        return view('pdf.resume', compact('resume'));
+    }
 }
