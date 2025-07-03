@@ -7,6 +7,7 @@ use App\Models\Experience;
 use App\Models\Resume;
 use App\Models\ResumeTemplate;
 use App\Models\Skill;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -173,6 +174,95 @@ class ResumeController extends Controller
             ], 404);
         }
     }
+
+    public function viewResume($id)
+    {
+        try {
+            // Fetch resume with template relationship
+            $resume = Resume::with(['experiences', 'education', 'skills', 'template'])->findOrFail($id);
+
+            // Log::info('Resume fetched successfully', ['id' => $id, 'resume' => $resume->toArray()]);
+
+            // Build data structure to return
+            $data = $resume->toArray();
+
+            // Rename keys
+            $data['lastName'] = $data['last_name'];
+            unset($data['last_name']);
+
+            // You can add more key renames here
+            $data['jobTitle'] = $data['job_title'];
+            unset($data['job_title']);
+
+            $data['postalCode'] = $data['postal_code'];
+            unset($data['postal_code']);
+
+            // Rename experiences to employmentHistory and adjust date keys
+            $data['employmentHistory'] = array_map(function ($exp) {
+                // Rename start_date and end_date to startDate and endDate
+                $exp['startDate'] = $exp['start_date'];
+                $exp['endDate'] = $exp['end_date'];
+                $exp['jobTitle'] = $exp['job_title'];
+                unset($exp['start_date'], $exp['end_date'], $exp['job_title']);
+                // Format dates as "Y-m" (month and year) if not null
+                if (!empty($exp['startDate'])) {
+                    $exp['startDate'] = date('Y-m', strtotime($exp['startDate']));
+                }
+                if (!empty($exp['endDate'])) {
+                    $exp['endDate'] = date('Y-m', strtotime($exp['endDate']));
+                }
+                return $exp;
+            }, $data['experiences']);
+            unset($data['experiences']);
+
+            $data['education'] = array_map(function ($edu) {
+                // Rename start_date and end_date to startDate and endDate
+                $edu['startDate'] = $edu['start_date'];
+                $edu['endDate'] = $edu['end_date'];
+                unset($edu['start_date'], $edu['end_date']);
+                // Format dates as "Y-m" (month and year) if not null
+                if (!empty($edu['startDate'])) {
+                    $edu['startDate'] = date('Y-m', strtotime($edu['startDate']));
+                }
+                if (!empty($edu['endDate'])) {
+                    $edu['endDate'] = date('Y-m', strtotime($edu['endDate']));
+                }
+                return $edu;
+            }, $data['education']);
+
+
+            // Add template component name safely
+            if ($resume->template) {
+                $data['template'] = $resume->template->component;
+                // Log::info('Template component found', ['component' => $resume->template->component]);
+            } else {
+                $data['template'] = null;
+                // Log::warning('No template found for resume', ['resume_id' => $id]);
+            }
+
+            // Log::info('Resume data prepared for response', ['data_keys' => array_keys($data)]);
+
+            return response()->json([
+                'success' => true,
+                'data' => $data,
+            ]);
+        } catch (ModelNotFoundException $e) {
+            Log::error('Resume not found', ['id' => $id]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Resume not found.',
+                'error' => 'The requested resume does not exist.',
+            ], 404);
+        } catch (\Exception $e) {
+            Log::error('Error fetching resume', ['id' => $id, 'error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while fetching the resume.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
 
     public function myResume(Request $request)
     {

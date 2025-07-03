@@ -66,15 +66,17 @@
 
                                 <!-- Resume Template 1 -->
                                 <div v-for="resume in resumes" :key="resume.id" class="col-12 col-sm-6 col-lg-3">
-                                    <div class="card h-100 border">
-                                        <div class="card-body d-flex flex-column justify-content-between">
-                                            <div>
-                                                <img :src="resume.template.preview_img"
-                                                    class="img-fluid rounded custom-boc-shadow"
-                                                    alt="Template Preview" />
+                                    <router-link :to="`/resume/${resume.id}/view`" class="text-decoration-none">
+                                        <div class="card h-100 border">
+                                            <div class="card-body d-flex flex-column justify-content-between">
+                                                <div>
+                                                    <img :src="resume.template.preview_img"
+                                                        class="img-fluid rounded custom-boc-shadow"
+                                                        alt="Template Preview" />
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    </router-link>
                                 </div>
                             </div>
                         </div>
@@ -90,7 +92,7 @@
                             <div v-else class="row gap-2">
 
                                 <!-- New Cover letter Card -->
-                                 <div class="col-12 col-sm-6 col-lg-3">
+                                <div class="col-12 col-sm-6 col-lg-3">
                                     <router-link to="/cover-letter" class="text-decoration-none">
                                         <div class="card h-100 border-2 border-dashed text-center">
                                             <div
@@ -110,7 +112,8 @@
                                 </div>
 
                                 <!-- coverLetter Template 1 -->
-                                <div v-for="coverLetter in coverLetters" :key="coverLetter.id" class="col-12 col-sm-6 col-lg-3">
+                                <div v-for="coverLetter in coverLetters" :key="coverLetter.id"
+                                    class="col-12 col-sm-6 col-lg-3">
                                     <div class="card h-100 border">
                                         <div class="card-body d-flex p-0 flex-column justify-content-between">
                                             <div>

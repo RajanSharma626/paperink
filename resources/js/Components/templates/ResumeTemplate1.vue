@@ -60,7 +60,11 @@
                   <tr>
                     <td>
                       <span v-for="(skill, index) in resume.skills" :key="index" class="skill-tag">{{ skill.skill
-                        }}</span>
+                      }}</span>
+
+                      <span class="skill-tag">HTML</span>
+
+
                     </td>
                   </tr>
                 </table>
@@ -81,7 +85,7 @@
                 <table width="100%" cellpadding="0" cellspacing="0" border="0" class="work-item">
                   <tr>
                     <td>
-                      <h5>{{ exp.jobTitle }}</h5>
+                      <h5><b></b>{{ exp.jobTitle }}</h5>
                     </td>
                   </tr>
                   <tr>

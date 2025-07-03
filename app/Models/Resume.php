@@ -58,7 +58,7 @@ class Resume extends Model
 
     public function template()
     {
-        return $this->belongsTo(ResumeTemplate::class);
+        return $this->belongsTo(ResumeTemplate::class, 'template_id');
     }
 
     // Accessor for full name

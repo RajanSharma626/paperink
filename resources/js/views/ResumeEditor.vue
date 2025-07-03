@@ -147,12 +147,13 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
 import { useResumeStore } from '@/stores/resume'
 import QuillEditor from '@/Components/form/QuillEditor.vue'
 
 const route = useRoute()
+const router = useRouter()
 const resumeStore = useResumeStore()
 const templateComponent = ref(null)
 const isGeneratingPDF = ref(false)
@@ -244,12 +245,25 @@ const currentFields = computed(() => formSteps[step.value - 1])
 const totalSteps = computed(() => formSteps.length)
 
 // Step Functions
-function handleNext() {
+async function handleNext() {
   if (step.value < totalSteps.value) {
     step.value++
   } else {
-    resumeStore.saveResume(resumeStore.resumeData, route.params.template)
-    console.log('Save to backend:', resumeStore.resumeData)
+    try {
+      const savedResume = await resumeStore.saveResume(resumeStore.resumeData, route.params.template)
+
+      if (savedResume.success) {
+        const resumeId = savedResume.resumeId
+
+        // Redirect to full view page
+        router.push(`/resume/${resumeId}/view`)
+      } else {
+        alert(savedResume.message || 'Failed to save resume')
+      }
+    } catch (error) {
+      console.error('Failed to save resume:', error)
+      alert('An unexpected error occurred. Please try again.')
+    }
   }
 }
 
