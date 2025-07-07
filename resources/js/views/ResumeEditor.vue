@@ -285,7 +285,7 @@ function removeEducation(index) {
   resumeStore.resumeData.education.splice(index, 1)
 }
 function addSkill() {
-  resumeStore.resumeData.skills.push({ skill: '', level: '' })
+  resumeStore.resumeData.skills.push({ skill: '', level: 'Beginner' })
 }
 function removeSkill(index) {
   resumeStore.resumeData.skills.splice(index, 1)

@@ -8,7 +8,7 @@
                 <div v-if="resume.jobTitle">
                     <div class="profession">{{ resume.jobTitle }}</div>
                 </div>
-                <div v-if="resume.summary" >
+                <div v-if="resume.summary">
                     <div class="bio" v-html="resume.summary"></div>
                 </div>
             </div>
@@ -23,7 +23,7 @@
                     </div>
                     <div v-if="resume.address" class="details">
                         <i class="icons bi-geo-alt-fill"></i>{{ [resume.address, resume.city, resume.postalCode,
-            resume.country].filter(Boolean).join(', ') }}
+                        resume.country].filter(Boolean).join(', ') }}
                     </div>
                 </div>
             </div>
@@ -33,7 +33,8 @@
                     <h4>Skills</h4>
                     <div class="skills-section">
                         <div v-for="(skill, index) in resume.skills" :key="index" class="skill-section">
-                           {{ skill.skill }}
+                            {{ skill.skill_name || skill.skill }}
+                            <span v-if="skill.level" class="level">({{ skill.level }})</span>
                         </div>
                     </div>
                 </div>

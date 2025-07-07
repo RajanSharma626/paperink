@@ -7,7 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Skill extends Model
 {
-     use HasFactory;
+    use HasFactory;
+
+    protected $table = "skills";
 
     protected $fillable = [
         'resume_id',

@@ -100,15 +100,15 @@ class ResumeController extends Controller
 
             if ($request->filled('skills') && is_array($request->skills)) {
                 foreach ($request->skills as $skill) {
-                    if (isset($skill['skill']) && isset($skill['level'])) {
+                    if (isset($skill['skill']) && !empty(trim($skill['skill']))) {
                         Skill::create([
                             'resume_id' => $resume->id,
-                            'skill_name' => $skill['skill'],
-                            'level' => $skill['level'],
+                            'skill_name' => $skill['skill'], // Map 'skill' to 'skill_name'
+                            'level' => $skill['level'] ?? 'Beginner', // Default to 'Beginner' if empty
                         ]);
                     }
                 }
-                // Log::info('Skills processed');
+                Log::info('Skills processed');
             }
 
             DB::commit();

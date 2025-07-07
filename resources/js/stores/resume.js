@@ -35,6 +35,11 @@ export const useResumeStore = defineStore("resume", {
             try {
                 const authStore = useAuthStore();
                 // Add user_id and template_id to resume data
+
+                // Add debugging here
+                console.log("Skills data being sent:", data.skills);
+                console.log("Full resume data:", data);
+
                 const resumeDataWithUser = {
                     ...data,
                     user_id: authStore.user?.id || null,

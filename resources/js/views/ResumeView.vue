@@ -17,11 +17,7 @@
       <!-- PDF Controls -->
       <div class="pdf-controls p-3 mb-4 bg-light sticky-top">
         <div class="d-flex justify-content-end">
-          <button 
-            class="btn btn-primary me-2" 
-            @click="generatePDF" 
-            :disabled="generatingPDF"
-          >
+          <button class="btn btn-primary me-2" @click="generatePDF" :disabled="generatingPDF">
             <i class="fas fa-download me-2"></i>
             {{ generatingPDF ? 'Generating PDF...' : 'Download PDF' }}
           </button>
@@ -29,8 +25,8 @@
       </div>
 
       <!-- Resume Content Container -->
-      <div class="d-flex justify-content-center p-3 bg-light">
-        <div ref="resumeContent" class="bg-white shadow-sm resume-container" style="width: 210mm; min-height: 297mm;">
+      <div class="d-flex justify-content-center p-3">
+        <div ref="resumeContent" class="resume-container" style="width: 210mm; min-height: 297mm;">
           <component :is="templateComponent" :resume="resume" />
         </div>
       </div>
@@ -61,10 +57,10 @@ const fetchResume = async () => {
 
   try {
     const response = await axios.get(`/api/resumes/${resumeId}`)
-    
+
     // Handle different response formats
     resume.value = response.data.data || response.data
-    
+
     if (!resume.value) {
       throw new Error('No resume data received')
     }
@@ -74,7 +70,7 @@ const fetchResume = async () => {
     if (!templateName) {
       throw new Error('No template specified for this resume')
     }
-    
+
     const module = await import(`@/components/templates/${templateName}.vue`)
     templateComponent.value = module.default
 
@@ -89,14 +85,14 @@ const fetchResume = async () => {
 // Generate PDF using Laravel backend
 const generatePDF = async () => {
   generatingPDF.value = true
-  
+
   try {
     // Get the complete HTML content
     const htmlContent = resumeContent.value.outerHTML
-    
+
     // Get all CSS styles
     const styles = getAllStyles()
-    
+
     // Prepare data for Laravel backend
     const requestData = {
       html: htmlContent,
@@ -113,7 +109,7 @@ const generatePDF = async () => {
         }
       }
     }
-    
+
     // Make request to Laravel backend
     const response = await axios.post('/api/generate-pdf', requestData, {
       responseType: 'blob',
@@ -122,7 +118,7 @@ const generatePDF = async () => {
         'Accept': 'application/pdf'
       }
     })
-    
+
     // Create and trigger download
     const blob = new Blob([response.data], { type: 'application/pdf' })
     const url = window.URL.createObjectURL(blob)
@@ -133,10 +129,10 @@ const generatePDF = async () => {
     link.click()
     document.body.removeChild(link)
     window.URL.revokeObjectURL(url)
-    
+
   } catch (err) {
     console.error('PDF generation failed:', err)
-    
+
     // Handle Laravel validation errors
     if (err.response?.status === 422) {
       error.value = 'Invalid data provided for PDF generation'
@@ -145,7 +141,7 @@ const generatePDF = async () => {
     } else {
       error.value = 'Failed to generate PDF. Please try again.'
     }
-    
+
     alert(error.value)
   } finally {
     generatingPDF.value = false
@@ -155,13 +151,13 @@ const generatePDF = async () => {
 // Get all CSS styles from the page
 const getAllStyles = () => {
   let styles = ''
-  
+
   // Get inline styles
   const inlineStyles = document.querySelector('style')
   if (inlineStyles) {
     styles += inlineStyles.innerHTML + '\n'
   }
-  
+
   // Get external stylesheets
   const styleSheets = document.styleSheets
   for (let i = 0; i < styleSheets.length; i++) {
@@ -177,7 +173,7 @@ const getAllStyles = () => {
       console.warn('Could not access stylesheet:', e)
     }
   }
-  
+
   // Add Bootstrap CSS if not already included
   if (!styles.includes('bootstrap')) {
     styles += `
@@ -193,7 +189,7 @@ const getAllStyles = () => {
       .me-2 { margin-right: 0.5rem; }
     `
   }
-  
+
   return styles
 }
 
@@ -203,7 +199,7 @@ onMounted(fetchResume)
 <style scoped>
 .pdf-controls {
   z-index: 1000;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .resume-container {
@@ -237,11 +233,11 @@ onMounted(fetchResume)
   .pdf-controls {
     display: none !important;
   }
-  
+
   body {
     background: white !important;
   }
-  
+
   .resume-container {
     box-shadow: none !important;
     margin: 0 !important;
