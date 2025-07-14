@@ -103,7 +103,7 @@ class ResumeController extends Controller
                     if (isset($skill['skill']) && !empty(trim($skill['skill']))) {
                         Skill::create([
                             'resume_id' => $resume->id,
-                            'skill_name' => $skill['skill'], // Map 'skill' to 'skill_name'
+                            'skill' => $skill['skill'], // Map 'skill' to 'skill_name'
                             'level' => $skill['level'] ?? 'Beginner', // Default to 'Beginner' if empty
                         ]);
                     }

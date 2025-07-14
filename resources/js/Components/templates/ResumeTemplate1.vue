@@ -9,7 +9,7 @@
               <td class="name">{{ resume.name + ' ' + resume.lastName }}</td>
             </tr>
             <tr v-if="resume.jobTitle">
-              <td class="profession">{{ resume.jobTitle }}</td>
+              <td class="profession fw-semibold">{{ resume.jobTitle }}</td>
             </tr>
             <tr v-if="resume.summary">
               <td class="bio" v-html="resume.summary"></td>
@@ -26,15 +26,15 @@
               <td class="details-section">
                 <table width="100%" cellpadding="0" cellspacing="0" border="0">
                   <tr>
-                    <td v-if="resume.email" class="details"><i class="icons bi-envelope-fill"></i> {{ resume.email }}
+                    <td v-if="resume.email" class="details"><i class="bi bi-envelope-fill"></i> {{ resume.email }}
                     </td>
-                    <td v-if="resume.phone" class="details"><i class="icons bi-phone-fill"></i> {{ resume.phone }}</td>
-                    <td v-if="resume.address" class="details"><i class="icons bi-geo-alt-fill"></i>
+                    <td v-if="resume.phone" class="details"><i class="bi bi-phone-fill"></i> {{ resume.phone }}</td>
+                    <td v-if="resume.address" class="details"><i class="bi bi-geo-alt-fill"></i>
                       {{ [resume.address, resume.city, resume.postalCode, resume.country].filter(Boolean).join(', ') }}
                     </td>
-                    <td v-if="resume.linkedin" class="details"><i class="icons bi-linkedin"></i> {{ resume.linkedin }}
+                    <td v-if="resume.linkedin" class="details"><i class="bi bi-linkedin"></i> {{ resume.linkedin }}
                     </td>
-                    <td v-if="resume.web" class="details"><i class="icons bi bi-skype"></i> {{ resume.web }}</td>
+                    <td v-if="resume.web" class="details"><i class="bi bi bi-skype"></i> {{ resume.web }}</td>
                   </tr>
                 </table>
               </td>
@@ -62,9 +62,6 @@
                       <span v-for="(skill, index) in resume.skills" :key="index" class="skill-tag">{{ skill.skill
                       }}</span>
 
-                      <span class="skill-tag">HTML</span>
-
-
                     </td>
                   </tr>
                 </table>
@@ -77,7 +74,7 @@
             cellspacing="0" border="0" class="work-table">
             <tr>
               <td>
-                <h4>Work Experience</h4>
+                <h4 class="mb-2">Work Experience</h4>
               </td>
             </tr>
             <tr v-for="(exp, index) in resume.employmentHistory" :key="index">
@@ -85,7 +82,7 @@
                 <table width="100%" cellpadding="0" cellspacing="0" border="0" class="work-item">
                   <tr>
                     <td>
-                      <h5><b></b>{{ exp.jobTitle }}</h5>
+                      <h5><b>{{ exp.jobTitle }}</b></h5>
                     </td>
                   </tr>
                   <tr>
@@ -113,10 +110,10 @@
 
           <!-- Education Section -->
           <table v-if="resume.education && resume.education.length" width="100%" cellpadding="0" cellspacing="0"
-            border="0" class="education-table">
+            border="0" class="education-table mt-3">
             <tr>
               <td>
-                <h4>Education</h4>
+                <h4 class="mb-2">Education</h4>
               </td>
             </tr>
             <tr v-for="(edu, index) in resume.education" :key="index">
@@ -124,7 +121,7 @@
                 <table width="100%" cellpadding="0" cellspacing="0" border="0" class="education-item">
                   <tr>
                     <td>
-                      <h5>{{ edu.degree }}</h5>
+                      <h5> <b>{{ edu.degree }}</b></h5>
                     </td>
                   </tr>
                   <tr>
@@ -133,7 +130,7 @@
                     </td>
                   </tr>
                   <tr>
-                    <td class="date">{{ edu.startDate }} - {{ edu.endDate }}</td>
+                    <td class="date">{{ edu.startDate }} - {{ edu.endDate ?? "Present" }}</td>
                   </tr>
                   <tr>
                     <td class="description" v-html="edu.description"></td>
@@ -283,7 +280,7 @@ const rightOrgs = computed(() => props.resume.orgs?.filter((_, i) => i % 2 !== 0
   padding-right: 4mm;
 }
 
-.details .icons {
+.details .bi {
   padding-right: 8px;
   font-size: 12px !important;
   color: #455aa3;
@@ -324,7 +321,6 @@ const rightOrgs = computed(() => props.resume.orgs?.filter((_, i) => i % 2 !== 0
 /* Work Experience Section */
 .work-table {
   margin-top: 4mm;
-  margin-bottom: 4mm;
   line-height: 1.2;
 }
 
@@ -335,9 +331,6 @@ const rightOrgs = computed(() => props.resume.orgs?.filter((_, i) => i % 2 !== 0
   margin: 5px 0;
 }
 
-.work-item {
-  margin-bottom: 4mm;
-}
 
 .work-item h5 {
   font-size: 16px;
@@ -366,7 +359,6 @@ const rightOrgs = computed(() => props.resume.orgs?.filter((_, i) => i % 2 !== 0
 .description {
   font-size: 14px !important;
   padding-top: 2mm;
-  padding-bottom: 2mm;
 }
 
 .description ul {
@@ -391,9 +383,7 @@ const rightOrgs = computed(() => props.resume.orgs?.filter((_, i) => i % 2 !== 0
   margin: 5px 0;
 }
 
-.education-item {
-  margin-bottom: 4mm;
-}
+
 
 .education-item h5 {
   font-size: 16px;

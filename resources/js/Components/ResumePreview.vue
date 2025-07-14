@@ -25,7 +25,7 @@ export default {
           <hr />
           <div class="skills">
             <h4>Skills</h4>
-            ${this.data.skills.map(skill => `<span style="background:#455aa3;color:white;padding:3px 6px;border-radius:4px;margin-right:5px;">${skill.skill}</span>`).join('')}
+            ${this.data.skills.map(skill => `<span style="background:#455aa3;color:white;padding:3px 6px;border-radius:4px;margin-right:5px;">${skill.skill_name}</span>`).join('')}
           </div>
           <br />
           <div class="work-experience">

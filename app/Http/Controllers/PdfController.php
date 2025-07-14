@@ -111,56 +111,70 @@ class PdfController extends Controller
         return $fullHtml;
     }
 
+    // private function getBootstrapIconsCSS()
+    // {
+    //     return file_get_contents('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css');
+    // }
+
     private function getBootstrapIconsCSS()
     {
-        return file_get_contents('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css');
-    }
-
-    private function getEmbeddedBootstrapIconsCSS()
-    {
-        // This is a simplified version - you'll need to get the full Bootstrap Icons CSS
-        // and convert the font files to base64 for complete offline support
-
+        // Use local Bootstrap Icons font
         $fontPath = public_path('fonts/bootstrap-icons.woff2');
         $fontBase64 = '';
 
         if (file_exists($fontPath)) {
             $fontBase64 = base64_encode(file_get_contents($fontPath));
+        } else {
+            // Fallback: try to download the font
+            try {
+                $fontUrl = 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/fonts/bootstrap-icons.woff2';
+                $fontContent = file_get_contents($fontUrl);
+                $fontBase64 = base64_encode($fontContent);
+
+                // Save it locally for future use
+                if (!file_exists(public_path('fonts'))) {
+                    mkdir(public_path('fonts'), 0755, true);
+                }
+                file_put_contents($fontPath, $fontContent);
+            } catch (\Exception $e) {
+                Log::warning('Failed to download Bootstrap Icons font: ' . $e->getMessage());
+            }
         }
 
         return "
-        @font-face {
-            font-family: 'bootstrap-icons';
-            src: url('data:application/font-woff2;charset=utf-8;base64,{$fontBase64}') format('woff2');
-            font-weight: normal;
-            font-style: normal;
-            font-display: block;
-        }
-        
-        .bi {
-            font-family: 'bootstrap-icons' !important;
-            speak: never;
-            font-style: normal;
-            font-weight: normal;
-            font-variant: normal;
-            text-transform: none;
-            line-height: 1;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
-        
-        /* Add specific icon classes as needed */
-        .bi-envelope-fill::before { content: '\f32f'; }
-        .bi-phone-fill::before { content: '\f4f4'; }
-        .bi-geo-alt-fill::before { content: '\f349'; }
-        .bi-linkedin::before { content: '\f472'; }
-        .bi-github::before { content: '\f3ed'; }
-        .bi-globe::before { content: '\f3f5'; }
-        .bi-calendar::before { content: '\f1ec'; }
-        .bi-briefcase::before { content: '\f1e6'; }
-        .bi-mortarboard::before { content: '\f4a4'; }
-        .bi-person::before { content: '\f4da'; }
-        ";
+    @font-face {
+        font-family: 'bootstrap-icons';
+        src: url('data:application/font-woff2;charset=utf-8;base64,{$fontBase64}') format('woff2');
+        font-weight: normal;
+        font-style: normal;
+        font-display: block;
+    }
+    
+    .bi, .icons {
+        font-family: 'bootstrap-icons' !important;
+        speak: never;
+        font-style: normal;
+        font-weight: normal;
+        font-variant: normal;
+        text-transform: none;
+        line-height: 1;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+    
+    /* Bootstrap Icons Unicode mappings */
+    .bi-envelope-fill::before { content: '\\f32f'; }
+    .bi-phone-fill::before { content: '\\f4f4'; }
+    .bi-geo-alt-fill::before { content: '\\f349'; }
+    .bi-linkedin::before { content: '\\f472'; }
+    .bi-github::before { content: '\\f3ed'; }
+    .bi-globe::before { content: '\\f3f5'; }
+    .bi-calendar::before { content: '\\f1ec'; }
+    .bi-briefcase::before { content: '\\f1e6'; }
+    .bi-mortarboard::before { content: '\\f4a4'; }
+    .bi-person::before { content: '\\f4da'; }
+    .bi-skype::before { content: '\\f4f2'; }
+    ";
     }
 
     private function cleanHTMLForPDF($html)
