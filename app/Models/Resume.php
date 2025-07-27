@@ -25,7 +25,8 @@ class Resume extends Model
         'job_title',
         'summary',
         'template_id',
-        'is_active'
+        'is_active',
+        'preview_image'
     ];
 
     protected $casts = [

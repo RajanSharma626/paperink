@@ -41,8 +41,8 @@
         <div v-if="resume.employmentHistory?.length" class="work-experience">
           <h4>Work Experience</h4>
           <div v-for="(exp, i) in resume.employmentHistory" :key="i">
-            <h5>{{ exp.jobTitle }}</h5>
-            <h6>{{ exp.company }}</h6>
+            <h5 class="text-black">{{ exp.jobTitle }}</h5>
+            <h6 class="text-muted">{{ exp.company }}</h6>
             <span class="date">
               <span>{{ exp.startDate }} - {{ exp.endDate }}</span>
               <span>{{ exp.city }}</span>
@@ -54,8 +54,8 @@
         <div v-if="resume.education?.length" class="education">
           <h4>Education</h4>
           <div v-for="(edu, i) in resume.education" :key="i">
-            <h5>{{ edu.degree }}</h5>
-            <h6>{{ edu.school }}</h6>
+            <h5 class="text-black">{{ edu.degree }}</h5>
+            <h6 class="text-muted">{{ edu.school }}</h6>
             <span class="date">
               <span>
                 {{ edu.startDate }} - {{ edu.endDate }}
@@ -195,8 +195,9 @@ const rightOrgs = computed(() => props.resume.orgs?.filter((_, i) => i % 2 !== 0
   border-radius: 4px;
   padding: 3px 6px;
   text-align: center;
-  margin: 0 5px 0 0;
+  margin: 3px;
   color: #fff;
+  display: inline-block;
 }
 
 .work-experience h5,

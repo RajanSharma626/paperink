@@ -84,13 +84,13 @@ const hasNameDetails = computed(() => {
     /* padding: 2mm; */
     margin: 10mm auto;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    border-radius: 10px;
+    /* border-radius: 10px; */
 }
 
 .main .top {
     /* height: 50px; */
     background-color: #697083;
-    border-radius: 10px 10px 0 0;
+    /* border-radius: 10px 10px 0 0; */
     /* padding: 10mm 12mm; */
 }
 
@@ -193,6 +193,7 @@ const hasNameDetails = computed(() => {
     .page {
         margin: 0;
         box-shadow: none;
+        border-radius: 0px;
     }
 }
 </style>

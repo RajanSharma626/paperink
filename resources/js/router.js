@@ -8,6 +8,7 @@ import ResumeEditor from "./views/ResumeEditor.vue";
 import CoverEditor from "./views/CoverEditor.vue";
 import Dashboard from "./views/Dashboard.vue"; // Make sure this is the correct file
 import ResumeView from "./views/ResumeView.vue"; // Make sure this is the correct file
+import CoverLetterView from "./views/CoverLetterView.vue";
 
 const routes = [
     { path: "/", name: "Home", component: Home },
@@ -29,6 +30,11 @@ const routes = [
         path: "/resume/:id/view",
         name: "ResumeView",
         component: ResumeView,
+    },
+    {
+        path: "/cover-letter/:id/view",
+        name: "CoverLetterView",
+        component: CoverLetterView,
     },
 ];
 

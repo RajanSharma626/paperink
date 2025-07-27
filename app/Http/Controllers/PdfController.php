@@ -111,11 +111,6 @@ class PdfController extends Controller
         return $fullHtml;
     }
 
-    // private function getBootstrapIconsCSS()
-    // {
-    //     return file_get_contents('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css');
-    // }
-
     private function getBootstrapIconsCSS()
     {
         // Use local Bootstrap Icons font
@@ -186,9 +181,6 @@ class PdfController extends Controller
         // Convert external images to base64 if needed
         $html = $this->convertImagesToBase64($html);
 
-        // Remove the icon font replacement since we're now supporting Bootstrap Icons
-        // $html = $this->replaceIconFonts($html); // Comment out this line
-
         return $html;
     }
 
@@ -257,9 +249,117 @@ class PdfController extends Controller
         return $html;
     }
 
-    private function generateFilename($resumeName)
+    private function generateFilename($name)
     {
-        $cleanName = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $resumeName);
+        $cleanName = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $name);
         return $cleanName . '_' . date('Y-m-d_H-i-s') . '.pdf';
+    }
+
+    // Cover Letter PDF Generation ================================================
+
+    public function CoverLettergeneratePDF(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'html' => 'required|string',
+                'styles' => 'nullable|string',
+                'cover_id' => 'required',
+                'cover_name' => 'nullable|string',
+                'options' => 'nullable|array'
+            ]);
+
+            // Use the same HTML preparation method as resume
+            $html = $this->prepareHTMLContentForCoverLetterPDF(
+                $validated['html'],
+                $validated['styles'] ?? '',
+                $validated['options'] ?? []
+            );
+
+            $pdf = Browsershot::html($html)
+                ->format('A4')
+                ->margins(0, 0, 0, 0)
+                ->showBackground()
+                ->showBrowserHeaderAndFooter(false)
+                ->waitUntilNetworkIdle()
+                ->timeout(60)
+                ->emulateMedia('print')
+                ->dismissDialogs()
+                ->ignoreHttpsErrors()
+                ->setOption('args', [
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--disable-gpu',
+                    '--no-first-run',
+                    '--disable-default-apps',
+                    '--disable-extensions'
+                ])
+                ->pdf();
+
+            $filename = $this->generateFilename($validated['cover_name'] ?? 'Cover_Letter');
+
+            return response($pdf, 200, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                'Content-Length' => strlen($pdf),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Cover Letter PDF Generation Error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->all()
+            ]);
+
+            return response()->json([
+                'error' => 'Failed to generate Cover Letter PDF',
+                'message' => config('app.debug') ? $e->getMessage() : 'Internal server error'
+            ], 500);
+        }
+    }
+
+    private function prepareHTMLContentForCoverLetterPDF($html, $styles = '', $options = [])
+    {
+        // Clean and prepare the HTML
+        $cleanHtml = $this->cleanHTMLForCoverLetterPDF($html);
+
+        // Get Bootstrap Icons CSS
+        $bootstrapIconsCSS = $this->getBootstrapIconsCSS();
+
+        $fullHtml = '<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cover Letter PDF</title>
+    <style>
+        ' . $bootstrapIconsCSS . '
+        ' . $styles . '
+        
+        /* Additional styles for better PDF rendering */
+        @media print {
+            .bi {
+                -webkit-print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    ' . $cleanHtml . '
+</body>
+</html>';
+
+        return $fullHtml;
+    }
+
+    private function cleanHTMLForCoverLetterPDF($html)
+    {
+        // Remove problematic elements and fix common issues
+        $html = preg_replace('/<script[^>]*>.*?<\/script>/is', '', $html);
+        $html = preg_replace('/<noscript[^>]*>.*?<\/noscript>/is', '', $html);
+
+        // Convert external images to base64 if needed
+        $html = $this->convertImagesToBase64($html);
+
+        return $html;
     }
 }

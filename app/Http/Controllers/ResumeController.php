@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\View;
 use Mpdf\Mpdf;
+use Illuminate\Support\Str;
 
 class ResumeController extends Controller
 {
@@ -40,6 +41,48 @@ class ResumeController extends Controller
                 ], 422);
             }
 
+            $previewImagePath = null;
+
+            if ($request->filled('previewImage')) {
+                try {
+                    $base64Image = $request->previewImage;
+                    $imageData = str_replace('data:image/png;base64,', '', $base64Image);
+                    $imageData = str_replace(' ', '+', $imageData);
+                    $imageBinary = base64_decode($imageData);
+
+                    $imageName = 'preview_' . Str::random(10) . '.png';
+                    $directory = public_path('resume_previews');
+
+                    if (!file_exists($directory)) {
+                        mkdir($directory, 0755, true);
+                    }
+
+                    // Load image into GD from string
+                    $image = imagecreatefromstring($imageBinary);
+
+                    if (!$image) {
+                        throw new \Exception('Invalid image data.');
+                    }
+
+                    // Convert to grayscale
+                    imagefilter($image, IMG_FILTER_GRAYSCALE);
+
+                    // Save grayscale image
+                    $fullPath = $directory . '/' . $imageName;
+                    imagepng($image, $fullPath);
+
+                    // Clean up
+                    imagedestroy($image);
+
+                    // Set relative path for DB
+                    $previewImagePath = '/resume_previews/' . $imageName;
+                } catch (\Exception $e) {
+                    Log::error('Failed to process grayscale preview image: ' . $e->getMessage());
+                }
+            }
+
+
+
             DB::beginTransaction();
 
             $template = ResumeTemplate::where('slug', $request->template_id)
@@ -58,7 +101,8 @@ class ResumeController extends Controller
                 'country' => $request->country,
                 'job_title' => $request->jobTitle,
                 'summary' => $request->summary,
-                'template_id' => $template->id
+                'template_id' => $template->id,
+                'preview_image' => $previewImagePath
             ]);
 
             // Log::info('Resume created with ID: ' . $resume->id);

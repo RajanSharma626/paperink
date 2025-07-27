@@ -11,8 +11,8 @@
                     </span>
                 </div>
                 <h3 class="fw-bold mb-0 text-dark">
-                    Welcome back, <span class="theme-clr">{{ auth.user.name.charAt(0).toUpperCase() +
-                        auth.user.name.slice(1) }}</span>!
+                    Welcome back, <span class="theme-clr">{{ auth.user?.name?.charAt(0).toUpperCase() +
+                        auth.user?.name?.slice(1) }}</span>!
                 </h3>
             </div>
 
@@ -38,7 +38,15 @@
                         <div :class="['tab-pane fade', { 'show active': activeTab === 'resume' }]" id="resume"
                             role="tabpanel">
 
-                            <div v-if="resumes.length === 0" class="text-center py-5 text-muted">
+                            <!-- Loading state -->
+                            <div v-if="loading" class="text-center py-5">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mt-2 text-muted">Loading your resumes...</p>
+                            </div>
+
+                            <div v-else-if="resumes.length === 0" class="text-center py-5 text-muted">
                                 <h5>Resume Templates</h5>
                                 <p>Resume templates will be displayed here</p>
                             </div>
@@ -64,11 +72,11 @@
                                     </router-link>
                                 </div>
 
-                                <!-- Resume Template 1 -->
+                                <!-- Resume Template Cards -->
                                 <div v-for="resume in resumes" :key="resume.id" class="col-12 col-sm-6 col-lg-3">
                                     <router-link :to="`/resume/${resume.id}/view`" class="text-decoration-none">
                                         <div class="card h-100 border">
-                                            <div class="card-body d-flex flex-column justify-content-between">
+                                            <div class="card-body d-flex flex-column justify-content-between p-0">
                                                 <div>
                                                     <img :src="resume.template.preview_img"
                                                         class="img-fluid rounded custom-boc-shadow"
@@ -84,12 +92,21 @@
                         <!-- Cover Letter Tab -->
                         <div :class="['tab-pane fade', { 'show active': activeTab === 'cover-letter' }]"
                             id="cover-letter" role="tabpanel">
-                            <div v-if="coverLetters.length === 0" class="text-center py-5 text-muted">
+
+                            <!-- Loading state -->
+                            <div v-if="loading" class="text-center py-5">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mt-2 text-muted">Loading your cover letters...</p>
+                            </div>
+
+                            <div v-else-if="coverLetters.length === 0" class="text-center py-5 text-muted">
                                 <h5>Cover Letter Templates</h5>
                                 <p>Cover letter templates will be displayed here</p>
                             </div>
 
-                            <div v-else class="row gap-2">
+                            <div v-else class="row g-2">
 
                                 <!-- New Cover letter Card -->
                                 <div class="col-12 col-sm-6 col-lg-3">
@@ -111,18 +128,21 @@
                                     </router-link>
                                 </div>
 
-                                <!-- coverLetter Template 1 -->
+                                <!-- Cover Letter Template Cards -->
                                 <div v-for="coverLetter in coverLetters" :key="coverLetter.id"
                                     class="col-12 col-sm-6 col-lg-3">
-                                    <div class="card h-100 border">
-                                        <div class="card-body d-flex p-0 flex-column justify-content-between">
-                                            <div>
-                                                <img :src="coverLetter.template.preview_img"
-                                                    class="img-fluid rounded custom-boc-shadow"
-                                                    alt="Template Preview" />
+                                    <router-link :to="`/cover-letter/${coverLetter.id}/view`"
+                                        class="text-decoration-none">
+                                        <div class="card h-100 border">
+                                            <div class="card-body d-flex p-0 flex-column justify-content-between">
+                                                <div>
+                                                    <img :src="coverLetter.template.preview_img"
+                                                        class="img-fluid rounded custom-boc-shadow"
+                                                        alt="Template Preview" />
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    </router-link>
                                 </div>
                             </div>
                         </div>
@@ -142,20 +162,16 @@
     </div>
 </template>
 
-
 <script setup>
-import { ref } from 'vue'
-
+import { ref, onMounted, computed, nextTick } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 
-ref(() => {
-    setTimeout(fetchResume, 100); // Small delay to ensure CSRF token is available
-});
-
 const activeTab = ref('resume')
+const loading = ref(false)
+const error = ref(null)
 
 const auth = useAuthStore()
-const userInitial = ref(auth.user?.name?.charAt(0).toUpperCase() || 'U')
+const userInitial = computed(() => auth.user?.name?.charAt(0).toUpperCase() || 'U')
 
 const tabs = [
     { id: 'resume', name: 'Resume' },
@@ -165,80 +181,156 @@ const tabs = [
 const resumes = ref([]);
 const coverLetters = ref([]);
 
-// Fetch the resume templates from the server
-const fetchResume = () => {
+// Improved error handling and retry logic
+const makeApiRequest = async (url, data, retries = 3) => {
+    for (let i = 0; i < retries; i++) {
+        try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+
+            if (!csrfToken) {
+                throw new Error('CSRF token not found')
+            }
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`)
+            }
+
+            const result = await response.json();
+            return result;
+
+        } catch (err) {
+            console.error(`Request attempt ${i + 1} failed:`, err);
+
+            if (i === retries - 1) {
+                throw err; // Last retry failed
+            }
+
+            // Wait before retrying
+            await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+        }
+    }
+};
+
+// Fetch resumes with improved error handling
+const fetchResume = async () => {
     const userId = auth.user?.id;
     if (!userId) {
         console.error('User ID not found');
         return;
     }
 
-    fetch('/my-resume', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-        },
-        body: JSON.stringify({ user_id: userId })
-    })
-        .then(response => response.json()) // Parse as JSON directly
-        .then(data => {
-            if (data.success) {
-                resumes.value = data.data;  // Access the 'data' property from your API response
-                console.log('Resume data:', resumes.value);
-            } else {
-                console.error('API Error:', data.message);
-                resumes.value = []; // Ensure empty array on error
-            }
-        })
-        .catch(error => {
-            console.error('Network error:', error);
-            resumes.value = []; // Ensure empty array on error
-        });
+    try {
+        loading.value = true;
+        error.value = null;
+
+        const data = await makeApiRequest('/api/my-resume', { user_id: userId });
+
+        if (data.success) {
+            resumes.value = Array.isArray(data.data) ? data.data : [];
+            // console.log('Resume data loaded:', resumes.value.length, 'items');
+        } else {
+            console.error('API Error:', data.message);
+            resumes.value = [];
+            error.value = data.message || 'Failed to load resumes';
+        }
+    } catch (err) {
+        console.error('Failed to fetch resumes:', err);
+        resumes.value = [];
+        error.value = 'Network error while loading resumes';
+    } finally {
+        loading.value = false;
+    }
 };
 
-// Fetch the resume templates from the server
-const fetchCover = () => {
+// Fetch cover letters with improved error handling
+const fetchCover = async () => {
     const userId = auth.user?.id;
     if (!userId) {
         console.error('User ID not found');
         return;
     }
 
-    fetch('/my-cover', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-        },
-        body: JSON.stringify({ user_id: userId })
-    })
-        .then(response => response.json()) // Parse as JSON directly
-        .then(data => {
-            if (data.success) {
-                coverLetters.value = data.data;  // Access the 'data' property from your API response
-                console.log('Cover data:', coverLetters.value);
-            } else {
-                console.error('API Error:', data.message);
-                coverLetters.value = []; // Ensure empty array on error
-            }
-        })
-        .catch(error => {
-            console.error('Network error:', error);
-            coverLetters.value = []; // Ensure empty array on error
-        });
+    try {
+        loading.value = true;
+        error.value = null;
+
+        const data = await makeApiRequest('/api/my-cover', { user_id: userId });
+
+        if (data.success) {
+            coverLetters.value = Array.isArray(data.data) ? data.data : [];
+            // console.log('Cover letter data loaded:', coverLetters.value.length, 'items');
+        } else {
+            console.error('API Error:', data.message);
+            coverLetters.value = [];
+            error.value = data.message || 'Failed to load cover letters';
+        }
+    } catch (err) {
+        console.error('Failed to fetch cover letters:', err);
+        coverLetters.value = [];
+        error.value = 'Network error while loading cover letters';
+    } finally {
+        loading.value = false;
+    }
 };
 
-import { onMounted } from 'vue'
+// Load all data
+const loadData = async () => {
+    if (!auth.user?.id) {
+        // console.log('Waiting for auth user...');
+        return;
+    }
 
+    // console.log('Loading dashboard data for user:', auth.user.id);
+
+    // Load both resumes and cover letters in parallel
+    await Promise.all([
+        fetchResume(),
+        fetchCover()
+    ]);
+};
+
+// Wait for auth to be ready, then load data
+const initializeDashboard = async () => {
+    // If auth store has a method to ensure it's ready, use it
+    if (typeof auth.initialize === 'function') {
+        await auth.initialize();
+    }
+
+    // Wait a tick to ensure reactivity is set up
+    await nextTick();
+
+    // If still no user, wait a bit more
+    if (!auth.user?.id) {
+        setTimeout(initializeDashboard, 100);
+        return;
+    }
+
+    await loadData();
+};
+
+// Initialize on component mount
 onMounted(() => {
-    fetchResume();
-    fetchCover();
+    // console.log('Dashboard component mounted');
+    initializeDashboard();
 });
 
+// Expose methods for potential external calls (debugging)
+defineExpose({
+    loadData,
+    fetchResume,
+    fetchCover
+});
 </script>
-
-
 
 <style scoped>
 /* Custom Bootstrap overrides */
@@ -261,11 +353,6 @@ onMounted(() => {
     color: #495057;
 }
 
-/* .card:hover {
-    transform: translateY(-2px);
-    transition: transform 0.2s ease-in-out;
-} */
-
 .btn:hover {
     transform: scale(1.05);
     transition: transform 0.1s ease-in-out;
@@ -284,12 +371,16 @@ onMounted(() => {
     min-height: 100vh;
 }
 
-/* Badge opacity utilities for better color contrast */
 .bg-opacity-25 {
     --bs-bg-opacity: 0.25;
 }
 
 .document-bg {
     background-color: #eceaea;
+}
+
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
 }
 </style>

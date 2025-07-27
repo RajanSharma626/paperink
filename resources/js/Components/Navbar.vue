@@ -39,7 +39,7 @@ const userName = computed(() => auth.user?.name || 'User')
                                 {{ userInitial }}
                             </span>
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
+                        <ul class="dropdown-menu dropdown-menu-end" style="z-index: 9999 !important;">
                             <li><a class="dropdown-item" href="javascript:void(0)">{{ userName }}</a></li>
                             <li>
                                 <hr class="dropdown-divider" />

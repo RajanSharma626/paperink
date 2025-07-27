@@ -12,34 +12,62 @@ class CoverLetterController extends Controller
 {
     public function store(Request $request)
     {
+        // Validate input
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
-            'name' => 'required|string',
-            'job_title' => 'required|string',
-            'company_name' => 'required|string',
-            'hiring_manager_name' => 'nullable|string',
-            'email' => 'nullable|email',
-            'phone' => 'nullable|string',
-            'address' => 'nullable|string',
-            'content' => 'required|string',
+            'name' => 'required|string|max:255',
+            'jobTitle' => 'required|string|max:255',
+            'company' => 'required|string|max:255',
+            'hiringManager' => 'nullable|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:255',
+            'address' => 'nullable|string|max:255',
+            'letter' => 'required|string',
             'template_id' => 'nullable|exists:coverletter_templates,slug',
         ]);
 
+        // Map frontend keys to DB keys
+        $data = [
+            'user_id' => $validated['user_id'],
+            'name' => $validated['name'],
+            'job_title' => $validated['jobTitle'],
+            'company_name' => $validated['company'],
+            'hiring_manager_name' => $validated['hiringManager'] ?? null,
+            'email' => $validated['email'] ?? null,
+            'phone' => $validated['phone'] ?? null,
+            'address' => $validated['address'] ?? null,
+            'content' => $validated['letter'],
+        ];
+
+        // Handle template_id (convert slug to id)
         if (isset($validated['template_id'])) {
             $template = CoverTemplate::where('slug', $validated['template_id'])->first();
             if ($template) {
-                $validated['template_id'] = $template->id;
+                $data['template_id'] = $template->id;
             } else {
-                return response()->json(['message' => 'Template not found.'], 404);
+                return response()->json(['success' => false, 'message' => 'Template not found.'], 404);
             }
         }
 
-        $cover = CoverLetter::create($validated);
+        try {
+            $cover = CoverLetter::create($data);
 
-        return response()->json([
-            'message' => 'Cover letter saved successfully.',
-            'data' => $cover
-        ], 201);
+            return response()->json([
+                'success' => true,
+                'message' => 'Cover letter saved successfully.',
+                'data' => [
+                    'cover_letter_id' => $cover->id,
+                    'cover_letter' => $cover
+                ]
+            ], 201);
+        } catch (\Exception $e) {
+            Log::error('Cover letter save failed: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to save cover letter.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function myCoverLetter(Request $request)
@@ -71,6 +99,46 @@ class CoverLetterController extends Controller
                 'message' => 'CoverLetter not found',
                 'error' => $e->getMessage() // optional: return in dev only
             ], 500);
+        }
+    }
+
+    /**
+     * Display a single cover letter with template info
+     */
+    public function show($id)
+    {
+        try {
+            $cover = CoverLetter::with('template')->findOrFail($id);
+            $data = $cover->toArray();
+            // Add template component name if available
+            if ($cover->template) {
+                $data['template'] = $cover->template;
+            } else {
+                $data['template'] = null;
+            }
+
+            $data['jobTitle'] = $data['job_title'];
+            unset($data['job_title']);
+
+            $data['company'] = $data['company_name'];
+            unset($data['company_name']);
+
+            $data['hiringManager'] = $data['hiring_manager_name'];
+            unset($data['hiring_manager_name']);
+
+            $data['letter'] = $data['content'];
+            unset($data['content']);
+
+            return response()->json([
+                'success' => true,
+                'data' => $data,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cover letter not found',
+                'error' => $e->getMessage(),
+            ], 404);
         }
     }
 

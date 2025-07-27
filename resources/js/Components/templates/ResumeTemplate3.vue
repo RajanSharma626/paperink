@@ -3,7 +3,7 @@
         <div class="main">
             <div class="top">
                 <div v-if="resume.name">
-                    <div class="name">{{ resume.name + ' ' + resume.lastName }}</div>
+                    <div v-if="resume.name" class="name fw-semibold">{{ resume.name }} <span v-if="resume.lastName"> {{ resume.lastName }}</span></div>
                 </div>
                 <div v-if="resume.jobTitle">
                     <div class="profession">{{ resume.jobTitle }}</div>
@@ -12,70 +12,91 @@
                     <div class="bio" v-html="resume.summary"></div>
                 </div>
             </div>
-
             <div class="middle" v-if="hasContactDetails">
                 <div class="details-section">
-                    <div v-if="resume.email" class="details">
-                        <i class="icons bi-envelope-fill"></i>{{ resume.email }}
-                    </div>
-                    <div v-if="resume.phone" class="details">
-                        <i class="icons bi-phone-fill"></i>{{ resume.phone }}
-                    </div>
-                    <div v-if="resume.address" class="details">
-                        <i class="icons bi-geo-alt-fill"></i>{{ [resume.address, resume.city, resume.postalCode,
-                        resume.country].filter(Boolean).join(', ') }}
-                    </div>
+                    <p v-if="resume.email" class="details mb-0"><i class="icons bi-envelope-fill"></i>{{ resume.email }}</p>
+                    <p v-if="resume.phone" class="details mb-0"><i class="icons bi-phone-fill"></i>{{ resume.phone }}</p>
+                    <p v-if="resume.address" class="details mb-0">
+                        <i class="icons bi-geo-alt-fill"></i>
+                        {{ [resume.address, resume.city, resume.postalCode, resume.country].filter(Boolean).join(', ') }}
+                    </p>
+                    <!-- <p class="details"><i class="icons bi-linkedin"></i>linkedin.com/in/jon.snow</p>
+                    <p class="details"><i class="icons bi bi-skype"></i>jon.snow</p> -->
                 </div>
             </div>
-
             <div class="end">
                 <div v-if="resume.skills && resume.skills.length" class="skills">
-                    <h4>Skills</h4>
+                    <h4 class="fw-bold">Skills</h4>
                     <div class="skills-section">
                         <div v-for="(skill, index) in resume.skills" :key="index" class="skill-section">
-                            {{ skill.skill_name || skill.skill }}
-                            <span v-if="skill.level" class="level">({{ skill.level }})</span>
+                            <p class="mb-0 fs-16">
+                                {{ skill.skill || skill.skill_name }}
+                            </p>
                         </div>
                     </div>
                 </div>
-
-                <div v-if="resume.employmentHistory?.length" class="work-experience">
-                    <h4>Work experience</h4>
-                    <div v-for="(exp, i) in resume.employmentHistory" :key="i" class="work-experience-para">
+                <br v-if="resume.employmentHistory && resume.employmentHistory.length">
+                <div v-if="resume.employmentHistory && resume.employmentHistory.length" class="work-experience">
+                    <h4 class="mb-0 fw-bold">Work experience</h4>
+                    <div v-for="(exp, i) in resume.employmentHistory" :key="i">
                         <div class="line-section">
                             <div class="line"></div>
-                            <h5>{{ exp.jobTitle }}</h5>
+                            <h6 class="mb-0 ms-2 fw-semibold">{{ exp.jobTitle }}</h6>
                         </div>
-                        <h6>{{ exp.company }}</h6>
-                        <span class="date">
-                            <span>{{ exp.startDate }} - {{ exp.endDate }}</span>
-                            <span>{{ exp.city }}</span>
-                        </span>
-                        <div v-html="exp.description"></div>
+                        <div class="work-experience-para">
+                            <h6 class="text-muted mb-0">{{ exp.company }}</h6>
+                            <span class="date">
+                                <span>{{ exp.startDate || exp.startYear }} - {{ exp.endDate || exp.endYear || "Present"  }}</span>
+                                <span>{{ exp.city || exp.address }}</span>
+                            </span>
+                            <p v-if="exp.description" v-html="exp.description"></p>
+                        </div>
                     </div>
                 </div>
-
-                <div v-if="resume.education?.length" class="education">
-                    <h4>Education</h4>
-                    <div v-for="(edu, i) in resume.education" :key="i" class="education-para">
+                <br v-if="(resume.employmentHistory && resume.employmentHistory.length) || (resume.education && resume.education.length)">
+                <div v-if="resume.education && resume.education.length" class="education">
+                    <h4 class="mb-0 fw-bold">Education</h4>
+                    <div v-for="(edu, i) in resume.education" :key="i">
                         <div class="line-section">
                             <div class="line"></div>
-                            <h5>{{ edu.degree }}</h5>
+                            <h6 class="mb-0 fw-semibold ms-2">{{ edu.degree }}</h6>
                         </div>
-                        <h6>{{ edu.school }}</h6>
-                        <span class="date">
-                            <span>{{ edu.startDate }} - {{ edu.endDate }}</span>
-                            <span>{{ edu.city }}</span>
-                        </span>
-                        <div v-html="edu.description"></div>
+                        <div class="education-para">
+                            <h6 class="text-muted mb-0">{{ edu.university || edu.school }}</h6>
+                            <span class="date">{{ edu.startYear || edu.startDate }} - {{ edu.endYear || edu.endDate || "Present"  }}</span>
+                            <div v-if="edu.description" v-html="edu.description"></div>
+                        </div>
                     </div>
                 </div>
-
+                <br v-if="resume.orgs && resume.orgs.length">
+                <div v-if="resume.orgs && resume.orgs.length" class="organization">
+                    <h4>Organizations</h4>
+                    <div class="organization-section">
+                        <div class="left">
+                            <p v-for="(org, index) in resume.orgs" v-if="index % 2 === 0" :key="'left-' + index">
+                                {{ org.org }}<br>({{ org.start }} - {{ org.end }})
+                            </p>
+                        </div>
+                        <div class="right">
+                            <p v-for="(org, index) in resume.orgs" v-if="index % 2 !== 0" :key="'right-' + index">
+                                {{ org.org }}<br>({{ org.start }} - {{ org.end }})
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <br v-if="resume.lang && resume.lang.length">
+                <div v-if="resume.lang && resume.lang.length" class="languages">
+                    <h4>Languages</h4>
+                    <div class="languages-section">
+                        <p v-for="(language, index) in resume.lang" :key="index">
+                            {{ language.lang }} <br> <span>{{ language.lvl }}</span>
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </template>
-
 <script setup>
 import { computed } from 'vue';
 const props = defineProps({
@@ -100,6 +121,10 @@ const rightOrgs = computed(() => props.resume.orgs?.filter((_, i) => i % 2 !== 0
     border-radius: 10px;
 }
 
+.fs-16{
+    font-size: 16px;
+}
+
 .main {
     padding-top: 2mm;
     padding-bottom: 6mm;
@@ -107,6 +132,7 @@ const rightOrgs = computed(() => props.resume.orgs?.filter((_, i) => i % 2 !== 0
 
 .top {
     padding: 5mm 10mm;
+    padding-bottom: 0px;
     line-height: 1.2;
 }
 

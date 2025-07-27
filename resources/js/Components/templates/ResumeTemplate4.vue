@@ -8,7 +8,8 @@
           <div v-if="hasContactDetails" class="details">
             <p v-if="resume.email"><i class="icons bi-envelope-fill"></i>{{ resume.email }}</p>
             <p v-if="resume.phone"><i class="icons bi-phone-fill"></i> {{ resume.phone }}</p>
-            <p v-if="resume.address"><i class="icons bi-geo-alt-fill"></i>{{ [resume.address, resume.city, resume.postalCode,
+            <p v-if="resume.address"><i class="icons bi-geo-alt-fill"></i>{{ [resume.address, resume.city,
+            resume.postalCode,
             resume.country].filter(Boolean).join(', ') }}</p>
           </div>
         </div>
@@ -27,7 +28,7 @@
             <h4>Experience</h4>
             <div v-for="(exp, i) in resume.employmentHistory" :key="i">
               <h5>{{ exp.jobTitle }}</h5>
-              <div class="experience-top">
+              <div class="experience-top mb-2">
                 <div class="experience-left">
                   <h6>{{ exp.company }}</h6>
                 </div>
@@ -44,7 +45,7 @@
 
           <div v-if="resume.education && resume.education.length" class="education">
             <h4>Education</h4>
-            <div v-for="(edu, index) in resume.education" :key="'edu-'+index">
+            <div class="mb-3" v-for="(edu, index) in resume.education" :key="'edu-' + index">
               <h5>{{ edu.degree }}</h5>
               <div class="education-top">
                 <div class="education-left">
@@ -70,7 +71,7 @@
             <h4>Skills</h4>
             <div class="skills-section">
               <p>
-                <span v-for="(skill, index) in resume.skills" :key="'skill-'+index">{{ skill.skill }}</span>
+                <span v-for="(skill, index) in resume.skills" :key="'skill-' + index">{{ skill.skill }}</span>
               </p>
             </div>
           </div>
@@ -90,7 +91,7 @@ const props = defineProps({
 });
 
 const hasContactDetails = computed(() => {
-    return props.resume.email || props.resume.phone || props.resume.address
+  return props.resume.email || props.resume.phone || props.resume.address
 })
 
 const getLangLevel = (level) => {
@@ -226,7 +227,7 @@ const getLangLevel = (level) => {
 }
 
 .experience-right {
-  width: 70%;
+  width: 65%;
   display: flex;
   text-align: right;
   justify-content: end;
@@ -400,6 +401,7 @@ const getLangLevel = (level) => {
 }
 
 @media print {
+
   body,
   .page {
     margin: 0;

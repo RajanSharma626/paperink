@@ -28,7 +28,7 @@ export const useResumeStore = defineStore("resume", {
     }),
     actions: {
         // Save resume to database
-        async saveResume(data, template_id = null) {
+        async saveResume(data, template_id = null, previewImageData) {
             this.loading = true;
             this.error = null;
 
@@ -44,6 +44,7 @@ export const useResumeStore = defineStore("resume", {
                     ...data,
                     user_id: authStore.user?.id || null,
                     template_id: template_id,
+                    previewImage: previewImageData
                 };
 
                 const response = await axios.post(

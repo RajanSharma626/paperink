@@ -26,9 +26,15 @@ Route::post('/resumes/store', [ResumeController::class, 'store'])
     ->name('api.resumes.store');
 
 Route::post('/cover-letters', [CoverLetterController::class, 'store']);
+Route::get('/cover-letters/{id}', [CoverLetterController::class, 'show']);
+
+Route::post('/my-resume', [ResumeController::class, 'myResume']);
+
+Route::post('/my-cover', [CoverLetterController::class, 'myCoverLetter']);
 
 // PDF Generation routes
 Route::post('/generate-pdf', [PDFController::class, 'generatePDF']);
+Route::post('/cover-letter/generate-pdf', [PDFController::class, 'CoverLettergeneratePDF']);
 Route::post('/generate-pdf-url', [PDFController::class, 'generatePDFFromURL']);
 Route::post('/generate-pdf-dompdf', [PDFController::class, 'generatePDFWithDomPDF']);
 

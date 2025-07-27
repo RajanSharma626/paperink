@@ -1,210 +1,82 @@
 <template>
-  <div class="page border" id="page">
-    <table class="main-table" cellpadding="0" cellspacing="0" border="0">
-      <!-- Header Section -->
-      <tr>
-        <td class="top">
-          <table width="100%" cellpadding="0" cellspacing="0" border="0">
-            <tr v-if="resume.name">
-              <td class="name">{{ resume.name + ' ' + resume.lastName }}</td>
-            </tr>
-            <tr v-if="resume.jobTitle">
-              <td class="profession fw-semibold">{{ resume.jobTitle }}</td>
-            </tr>
-            <tr v-if="resume.summary">
-              <td class="bio" v-html="resume.summary"></td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-
-      <!-- Contact Details Section -->
-      <tr v-if="hasContactDetails">
-        <td class="middle">
-          <table width="100%" cellpadding="0" cellspacing="0" border="0">
-            <tr>
-              <td class="details-section">
-                <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                  <tr>
-                    <td v-if="resume.email" class="details"><i class="bi bi-envelope-fill"></i> {{ resume.email }}
-                    </td>
-                    <td v-if="resume.phone" class="details"><i class="bi bi-phone-fill"></i> {{ resume.phone }}</td>
-                    <td v-if="resume.address" class="details"><i class="bi bi-geo-alt-fill"></i>
-                      {{ [resume.address, resume.city, resume.postalCode, resume.country].filter(Boolean).join(', ') }}
-                    </td>
-                    <td v-if="resume.linkedin" class="details"><i class="bi bi-linkedin"></i> {{ resume.linkedin }}
-                    </td>
-                    <td v-if="resume.web" class="details"><i class="bi bi bi-skype"></i> {{ resume.web }}</td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-
-      <!-- Content Section -->
-      <tr>
-        <td class="end">
-          <!-- Skills Section -->
-          <table v-if="resume.skills && resume.skills.length" width="100%" cellpadding="0" cellspacing="0" border="0"
-            class="skills-table">
-            <tr>
-              <td>
-                <h4>Skills</h4>
-              </td>
-            </tr>
-            <tr>
-              <td class="skills-section">
-                <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                  <tr>
-                    <td>
-                      <span v-for="(skill, index) in resume.skills" :key="index" class="skill-tag">{{ skill.skill
-                      }}</span>
-
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-          </table>
-
-          <!-- Work Experience Section -->
-          <table v-if="resume.employmentHistory && resume.employmentHistory.length" width="100%" cellpadding="0"
-            cellspacing="0" border="0" class="work-table">
-            <tr>
-              <td>
-                <h4 class="mb-2">Work Experience</h4>
-              </td>
-            </tr>
-            <tr v-for="(exp, index) in resume.employmentHistory" :key="index">
-              <td>
-                <table width="100%" cellpadding="0" cellspacing="0" border="0" class="work-item">
-                  <tr>
-                    <td>
-                      <h5><b>{{ exp.jobTitle }}</b></h5>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <h6>{{ exp.company }}</h6>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <table width="100%" cellpadding="0" cellspacing="0" border="0" class="date-row">
-                        <tr>
-                          <td class="date-left">{{ exp.startDate }} - {{ exp.endDate }}</td>
-                          <td class="date-right">{{ exp.city }}</td>
-                        </tr>
-                      </table>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="description" v-html="exp.description"></td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-          </table>
-
-          <!-- Education Section -->
-          <table v-if="resume.education && resume.education.length" width="100%" cellpadding="0" cellspacing="0"
-            border="0" class="education-table mt-3">
-            <tr>
-              <td>
-                <h4 class="mb-2">Education</h4>
-              </td>
-            </tr>
-            <tr v-for="(edu, index) in resume.education" :key="index">
-              <td>
-                <table width="100%" cellpadding="0" cellspacing="0" border="0" class="education-item">
-                  <tr>
-                    <td>
-                      <h5> <b>{{ edu.degree }}</b></h5>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <h6>{{ edu.school }}</h6>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="date">{{ edu.startDate }} - {{ edu.endDate ?? "Present" }}</td>
-                  </tr>
-                  <tr>
-                    <td class="description" v-html="edu.description"></td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-          </table>
-
-          <!-- Organizations Section -->
-          <table v-if="resume.orgs && resume.orgs.length" width="100%" cellpadding="0" cellspacing="0" border="0"
-            class="org-table">
-            <tr>
-              <td>
-                <h4>Organizations</h4>
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                  <tr>
-                    <td width="50%" valign="top">
-                      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                        <tr v-for="(org, index) in leftOrgs" :key="'left-' + index">
-                          <td class="org-item">
-                            {{ org.org }}<br />({{ org.start }} - {{ org.end }})
-                          </td>
-                        </tr>
-                      </table>
-                    </td>
-                    <td width="50%" valign="top">
-                      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                        <tr v-for="(org, index) in rightOrgs" :key="'right-' + index">
-                          <td class="org-item">
-                            {{ org.org }}<br />({{ org.start }} - {{ org.end }})
-                          </td>
-                        </tr>
-                      </table>
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-          </table>
-
-          <!-- Languages Section -->
-          <table v-if="resume.lang && resume.lang.length" width="100%" cellpadding="0" cellspacing="0" border="0"
-            class="lang-table">
-            <tr>
-              <td>
-                <h4>Languages</h4>
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                  <tr>
-                    <td>
-                      <table cellpadding="0" cellspacing="0" border="0" class="languages-section">
-                        <tr>
-                          <td v-for="(language, index) in resume.lang" :key="index" class="lang-item">
-                            {{ language.lang }} <br /><span>{{ language.lvl }}</span>
-                          </td>
-                        </tr>
-                      </table>
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
+  <div class="page" id="page">
+    <div class="main">
+      <div class="top">
+        <div v-if="resume.name" class="name">{{ resume.name }} <span v-if="resume.lastName"> {{ resume.lastName }}</span></div>
+        <div v-if="resume.jobTitle" class="profession">{{ resume.jobTitle }}</div>
+        <div v-if="resume.summary" class="bio" v-html="resume.summary"></div>
+      </div>
+      <div v-if="hasContactDetails" class="middle">
+        <div class="details-section">
+          <p v-if="resume.email" class="details"><i class="icons bi-envelope-fill"></i>{{ resume.email }}</p>
+          <p v-if="resume.phone" class="details"><i class="icons bi-phone-fill"></i>{{ resume.phone }}</p>
+          <p v-if="resume.address" class="details"><i class="icons bi-geo-alt-fill"></i>
+            {{ [resume.address, resume.city, resume.postalCode, resume.country].filter(Boolean).join(', ') }}
+          </p>
+          <p v-if="resume.linkedin" class="details"><i class="icons bi-linkedin"></i>{{ resume.linkedin }}</p>
+          <p v-if="resume.web" class="details"><i class="icons bi bi-skype"></i>{{ resume.web }}</p>
+        </div>
+      </div>
+      <div class="end">
+        <div v-if="resume.skills && resume.skills.length" class="skills">
+          <h4>Skills</h4>
+          <div class="skills-section">
+            <p>
+              <span v-for="(skill, index) in resume.skills" :key="index">{{ skill.skill }}</span>
+            </p>
+          </div>
+        </div>
+        <br v-if="resume.employmentHistory && resume.employmentHistory.length">
+        <div v-if="resume.employmentHistory && resume.employmentHistory.length" class="work-experience">
+          <h4>work experience</h4>
+          <div v-for="(exp, index) in resume.employmentHistory" :key="index">
+            <h5 class="text-black">{{ exp.jobTitle }}</h5>
+            <h6 class="text-muted">{{ exp.company }}</h6>
+            <span class="date">
+              <span>{{ exp.startDate }}-{{ exp.endDate }}</span>
+              <span>{{ exp.city }}</span>
+            </span>
+            <p v-if="exp.description" v-html="exp.description"></p>
+          </div>
+        </div>
+        <div v-if="resume.education && resume.education.length" class="education">
+          <h4>Education</h4>
+          <div class="education-section">
+            <div v-for="(edu, index) in resume.education" :key="index">
+              <h5 class="text-black">{{ edu.degree }}</h5>
+              <h6 class="text-muted">{{ edu.school || edu.university }}</h6>
+              <span class="date">{{ edu.startDate || edu.startYear }}-{{ edu.endDate || edu.endYear || "Present" }}</span>
+              <div v-if="edu.description" v-html="edu.description"></div>
+            </div>
+          </div>
+        </div>
+        <br v-if="resume.orgs && resume.orgs.length">
+        <div v-if="resume.orgs && resume.orgs.length" class="organization">
+          <h4>Organizations</h4>
+          <div class="organization-section">
+            <div class="left">
+              <p v-for="(org, index) in resume.orgs" v-if="index % 2 === 0" :key="'left-' + index">
+                {{ org.org }}<br>({{ org.start }} - {{ org.end }})
+              </p>
+            </div>
+            <div class="right">
+              <p v-for="(org, index) in resume.orgs" v-if="index % 2 !== 0" :key="'right-' + index">
+                {{ org.org }}<br>({{ org.start }} - {{ org.end }})
+              </p>
+            </div>
+          </div>
+        </div>
+        <br v-if="resume.lang && resume.lang.length">
+        <div v-if="resume.lang && resume.lang.length" class="languages">
+          <h4>Languages</h4>
+          <div class="languages-section">
+            <p v-for="(language, index) in resume.lang" :key="index">
+              {{ language.lang }} <br> <span>{{ language.lvl }}</span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -222,12 +94,11 @@ const hasContactDetails = computed(() => {
   const r = props.resume;
   return r.email || r.phone || r.address || r.linkedin || r.web;
 });
-
-const leftOrgs = computed(() => props.resume.orgs?.filter((_, i) => i % 2 === 0) || []);
-const rightOrgs = computed(() => props.resume.orgs?.filter((_, i) => i % 2 !== 0) || []);
 </script>
 
 <style scoped>
+
+@import url("https://fonts.googleapis.com/css2?family=Ubuntu&display=swap");
 * {
   margin: 0;
   padding: 0;
@@ -238,12 +109,13 @@ const rightOrgs = computed(() => props.resume.orgs?.filter((_, i) => i % 2 !== 0
   background: #fff;
   width: 210mm;
   min-height: 297mm;
+  margin: 10mm auto;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   border-radius: 10px;
 }
 
-.main-table {
-  width: 100%;
-  border-collapse: collapse;
+.main {
+  padding: 2mm 0;
 }
 
 .top {
@@ -270,17 +142,19 @@ const rightOrgs = computed(() => props.resume.orgs?.filter((_, i) => i % 2 !== 0
   border-bottom: 2px solid #000;
 }
 
-.details-section {
+.middle .details-section {
+  display: flex;
+  align-items: center;
+  gap: 4mm;
   padding: 2mm 0;
 }
 
-.details {
+.details-section .details {
   font-size: 12px !important;
   font-weight: 400;
-  padding-right: 4mm;
 }
 
-.details .bi {
+.details .icons {
   padding-right: 8px;
   font-size: 12px !important;
   color: #455aa3;
@@ -290,143 +164,135 @@ const rightOrgs = computed(() => props.resume.orgs?.filter((_, i) => i % 2 !== 0
   padding: 2mm 10mm;
 }
 
-/* Skills Section */
-.skills-table {
-  margin-bottom: 2mm;
+.skills {
   line-height: 1.2;
 }
 
-.skills-table h4 {
+.skills h4 {
   font-size: 18px;
   text-transform: uppercase;
   color: #455aa3;
   margin: 5px 0;
 }
 
-.skills-section {
+.skills-section p {
   font-size: 14px;
   line-height: 2;
 }
 
-.skill-tag {
+.skills-section span {
   background-color: #455aa3;
   border-radius: 4px;
-  padding: 3px 6px;
+  padding: 0px 6px;
   text-align: center;
-  margin: 0 5px 0 0;
+  margin:  3px;
   color: #fff;
   display: inline-block;
 }
 
-/* Work Experience Section */
-.work-table {
-  margin-top: 4mm;
+.work-experience {
   line-height: 1.2;
 }
 
-.work-table h4 {
+.work-experience h4 {
   font-size: 18px;
   text-transform: uppercase;
   color: #455aa3;
   margin: 5px 0;
 }
 
-
-.work-item h5 {
+.work-experience h5 {
   font-size: 16px;
 }
 
-.work-item h6 {
+.work-experience h6 {
   font-size: 16px;
   font-weight: 500;
 }
 
-.date-row {
+.work-experience .date {
+  display: flex;
+  justify-content: space-between;
   font-size: 12px;
   font-style: italic;
   color: #455aa3;
   padding: 4px 0;
 }
 
-.date-left {
-  text-align: left;
-}
-
-.date-right {
-  text-align: right;
-}
-
-.description {
+.work-experience ul {
   font-size: 14px !important;
-  padding-top: 2mm;
-}
-
-.description ul {
   padding-left: 4mm;
   line-height: 1.3;
 }
 
-.description li::marker {
+.work-experience p {
+  font-size: 14px !important;
+}
+
+.work-experience li::marker {
   color: #455aa3;
 }
 
-/* Education Section */
-.education-table {
-  margin-bottom: 4mm;
+.education {
   line-height: 1.2;
 }
 
-.education-table h4 {
+.education h4 {
   font-size: 18px;
   text-transform: uppercase;
   color: #455aa3;
   margin: 5px 0;
 }
 
+.education-section {
+  padding-bottom: 5px;
+}
 
-
-.education-item h5 {
+.education h5 {
   font-size: 16px;
 }
 
-.education-item h6 {
+.education h6 {
   font-size: 16px;
   font-weight: 500;
 }
 
-.education-item .date {
+.education .date {
   font-size: 12px;
   font-style: italic;
   color: #455aa3;
   padding: 3px 0;
 }
 
-/* Organizations Section */
-.org-table {
-  margin-bottom: 4mm;
+.organization {
   line-height: 1.2;
 }
 
-.org-table h4 {
+.organization h4 {
   font-size: 18px;
   text-transform: uppercase;
   color: #455aa3;
   margin: 5px 0;
 }
 
-.org-item {
+.organization-section {
+  display: flex;
+  justify-content: space-between;
   font-size: 14px;
-  padding-bottom: 4mm;
-  vertical-align: top;
 }
 
-/* Languages Section */
-.lang-table {
-  margin-bottom: 4mm;
+.organization-section .left p {
+  padding-bottom: 4mm;
+}
+.organization-section .right p {
+  padding-bottom: 4mm;
+}
+
+.languages {
   line-height: 1.2;
 }
 
-.lang-table h4 {
+.languages h4 {
   font-size: 18px;
   text-transform: uppercase;
   color: #455aa3;
@@ -434,23 +300,26 @@ const rightOrgs = computed(() => props.resume.orgs?.filter((_, i) => i % 2 !== 0
 }
 
 .languages-section {
-  border-spacing: 35px 0;
+  display: flex;
+  gap: 35px;
 }
 
-.lang-item {
+.languages-section p {
   font-size: 14px;
-  vertical-align: top;
 }
 
-.lang-item span {
+.languages-section p span {
   font-size: 12px;
   font-style: italic;
   color: #455aa3;
   padding: 3px 0;
 }
 
-@media print {
+.row {
+  padding: 4px;
+}
 
+@media print {
   body,
   .page {
     margin: 0;
