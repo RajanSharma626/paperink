@@ -551,5 +551,13 @@ const props = defineProps({
     margin: 0;
     box-shadow: none;
   }
+
+  .main .top {
+    border-radius: 0px;
+  }
+
+  .middle-right {
+    border-radius: 0px;
+  }
 }
 </style>

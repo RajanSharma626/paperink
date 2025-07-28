@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\CoverLetter;
 use App\Models\CoverTemplate;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 use Spatie\Browsershot\Browsershot;
 
 class CoverLetterController extends Controller
@@ -208,8 +210,59 @@ class CoverLetterController extends Controller
 
             return view('pdf-preview', compact('template', 'data'));
         } catch (\Exception $e) {
-            \Log::error('PDF Preview Error: ' . $e->getMessage());
+            Log::error('PDF Preview Error: ' . $e->getMessage());
             abort(500, 'Failed to load preview');
+        }
+    }
+
+
+    public function updateTemp(Request $request, $coverId)
+    {
+        // Validate input
+        $validator = Validator::make($request->all(), [
+            'template_id' => 'required|exists:coverletter_templates,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $cover = CoverLetter::findOrFail($coverId);
+
+            // Optionally, check if the authenticated user owns the resume
+            // if (auth()->id() !== $resume->user_id) {
+            //     return response()->json([
+            //         'success' => false,
+            //         'message' => 'Unauthorized'
+            //     ], 403);
+            // }
+
+            $cover->template_id = $request->input('template_id');
+            $cover->save();
+
+            // Optionally, return the updated resume or just success
+            return response()->json([
+                'success' => true,
+                'message' => 'Template updated successfully',
+                'data' => $cover
+            ]);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cover not found'
+            ], 404);
+        } catch (\Exception $e) {
+            Log::error('Failed to update template: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update template',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 }

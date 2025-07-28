@@ -375,4 +375,55 @@ class ResumeController extends Controller
 
         return view('pdf.resume', compact('resume'));
     }
+
+
+public function updateTemp(Request $request, $resumeId)
+{
+    // Validate input
+    $validator = Validator::make($request->all(), [
+        'template_id' => 'required|exists:resume_templates,id',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Validation failed',
+            'errors' => $validator->errors()
+        ], 422);
+    }
+
+    try {
+        $resume = Resume::findOrFail($resumeId);
+
+        // Optionally, check if the authenticated user owns the resume
+        // if (auth()->id() !== $resume->user_id) {
+        //     return response()->json([
+        //         'success' => false,
+        //         'message' => 'Unauthorized'
+        //     ], 403);
+        // }
+
+        $resume->template_id = $request->input('template_id');
+        $resume->save();
+
+        // Optionally, return the updated resume or just success
+        return response()->json([
+            'success' => true,
+            'message' => 'Template updated successfully',
+            'data' => $resume
+        ]);
+    } catch (ModelNotFoundException $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Resume not found'
+        ], 404);
+    } catch (\Exception $e) {
+        Log::error('Failed to update template: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to update template',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
 }

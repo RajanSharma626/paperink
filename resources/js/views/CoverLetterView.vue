@@ -25,9 +25,21 @@
       </div>
 
       <!-- Cover Letter Content Container -->
-      <div class="d-flex justify-content-center p-3">
-        <div ref="coverContent" class="resume-container" style="width: 210mm; min-height: 297mm;">
-          <component v-if="templateComponent" :is="templateComponent" :cover="cover" />
+      <div class="row justify-content-center p-3">
+        <div class="col-6">
+          <div class="row py-5">
+            <div v-for="template in templates" :key="template.id" class="col-lg-4 col-12 mb-3">
+              <a href="javascript:void(0)" @click="updateTemp(template.id)">
+                <img :src="template.preview_img" class="img-fluid rounded custom-boc-shadow tempImg"
+                  :class="{ 'selected-temp': template.id == template_id }" alt="Template Preview">
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="col-6">
+          <div ref="coverContent" class="resume-container" style="width: 210mm; min-height: 297mm;">
+            <component v-if="templateComponent" :is="templateComponent" :cover="cover" />
+          </div>
         </div>
       </div>
     </div>
@@ -50,6 +62,9 @@ const error = ref(null)
 const coverContent = ref(null)
 const generatingPDF = ref(false)
 
+const templates = ref([]);
+let template_id = ref(null)
+
 // Fetch cover letter data from API
 const fetchCover = async () => {
   loading.value = true
@@ -62,6 +77,8 @@ const fetchCover = async () => {
     if (!cover.value) {
       throw new Error('No cover letter data received')
     }
+
+    template_id = cover.value.template_id
 
     // Dynamically load the template component
     let templateName = null
@@ -199,6 +216,47 @@ const getAllStyles = () => {
   return styles
 }
 
+// Fetch the resume templates from the server
+const fetchTemplates = () => {
+  fetch('/cover-templates')
+    .then(response => response.text())
+    .then(text => {
+      try {
+        const data = JSON.parse(text);
+        templates.value = data;  // Set the templates in the state
+      } catch (e) {
+        console.error('Not valid JSON:', e);
+      }
+    })
+    .catch(error => {
+      console.error('Network error:', error);
+    });
+};
+
+fetchTemplates();
+
+// Update the selected template, update in database, and reload the page
+const updateTemp = async (newTemplateId) => {
+  template_id = newTemplateId
+
+  // Update the template in the database
+  try {
+    loading.value = true
+    await axios.post(`/api/cover/${coverId}/update-template`, {
+      template_id: newTemplateId
+    })
+    // Optionally, you could show a success message here
+
+    fetchCover()
+  } catch (e) {
+    error.value = 'Failed to update template in database.'
+    loading.value = false
+    console.error(e)
+  }
+}
+
+
+
 onMounted(fetchCover)
 </script>
 
@@ -248,5 +306,14 @@ onMounted(fetchCover)
     box-shadow: none !important;
     margin: 0 !important;
   }
+}
+
+.selected-temp {
+  border: 3px solid rgba(14, 110, 122, 1) !important;
+}
+
+.tempImg:hover {
+  border: 3px solid rgba(14, 110, 122, 1) !important;
+  transition: all 0.1s ease;
 }
 </style>

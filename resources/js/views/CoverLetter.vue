@@ -28,7 +28,7 @@
         <div class="row py-5">
             <div v-for="template in templates" :key="template.id" class="col-lg-3 col-12 mb-3">
                 <router-link :to="`/cover-editor/${template.slug}`">
-                    <img :src="template.preview_img" class="img-fluid rounded custom-boc-shadow" alt="Template Preview">
+                    <img :src="template.preview_img" class="img-fluid rounded custom-boc-shadow tempImg" alt="Template Preview">
                 </router-link>
             </div>
         </div>
@@ -79,4 +79,6 @@ export default {
 .custom-boc-shadow {
     box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
 }
+
+
 </style>

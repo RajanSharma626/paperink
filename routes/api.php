@@ -25,6 +25,10 @@ Route::get('/resumes/{id}', [ResumeController::class, 'viewResume']);
 Route::post('/resumes/store', [ResumeController::class, 'store'])
     ->name('api.resumes.store');
 
+Route::post('/resume/{resumeId}/update-template', [ResumeController::class, 'updateTemp']);
+
+Route::post('/cover/{coverId}/update-template', [CoverLetterController::class, 'updateTemp']);
+
 Route::post('/cover-letters', [CoverLetterController::class, 'store']);
 Route::get('/cover-letters/{id}', [CoverLetterController::class, 'show']);
 

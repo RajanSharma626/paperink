@@ -25,9 +25,25 @@
       </div>
 
       <!-- Resume Content Container -->
-      <div class="d-flex justify-content-center p-3">
-        <div ref="resumeContent" class="resume-container" style="width: 210mm; min-height: 297mm;">
-          <component :is="templateComponent" :resume="resume" />
+      <div class="row justify-content-center p-3">
+        <div class="col-6">
+
+          <div class="row">
+            <!-- Loop through the templates and display each template -->
+            <div v-for="template in templates" :key="template.id" class="col-lg-4 col-12 mb-3">
+              <a href="javascript:void(0)" @click="updateTemp(template.id)">
+                <img :src="template.preview_img" class="img-fluid rounded tempImg"
+                  :class="{ 'selected-temp': template.id == template_id }" alt="Template Preview" />
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 ">
+          <div class="d-flex justify-content-center">
+            <div ref="resumeContent" class="resume-container rounded">
+              <component :is="templateComponent" :resume="resume" />
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -49,6 +65,27 @@ const loading = ref(true)
 const error = ref(null)
 const generatingPDF = ref(false)
 const resumeContent = ref(null)
+const templates = ref([]); // Store the templates fetched from the server
+let template_id = ref(null)
+
+// Fetch the resume templates from the server
+const fetchTemplates = () => {
+  fetch('/resume-templates')
+    .then(response => response.text())
+    .then(text => {
+      try {
+        const data = JSON.parse(text);
+        templates.value = data;  // Set the templates in the state
+      } catch (e) {
+        console.error('Not valid JSON:', e);
+      }
+    })
+    .catch(error => {
+      console.error('Network error:', error);
+    });
+};
+
+fetchTemplates();
 
 // Fetch resume data from API
 const fetchResume = async () => {
@@ -65,8 +102,11 @@ const fetchResume = async () => {
       throw new Error('No resume data received')
     }
 
+    template_id = resume.value.template_id
+
     // Dynamically load the template component
     const templateName = resume.value.template
+
     if (!templateName) {
       throw new Error('No template specified for this resume')
     }
@@ -193,6 +233,29 @@ const getAllStyles = () => {
   return styles
 }
 
+
+// Update the selected template, update in database, and reload the page
+const updateTemp = async (newTemplateId) => {
+  template_id = newTemplateId
+
+  // Update the template in the database
+  try {
+    loading.value = true
+    await axios.post(`/api/resume/${resumeId}/update-template`, {
+      template_id: newTemplateId
+    })
+    // Optionally, you could show a success message here
+
+    fetchResume()
+  } catch (e) {
+    error.value = 'Failed to update template in database.'
+    loading.value = false
+    console.error(e)
+  }
+}
+
+
+
 onMounted(fetchResume)
 </script>
 
@@ -242,5 +305,15 @@ onMounted(fetchResume)
     box-shadow: none !important;
     margin: 0 !important;
   }
+
+}
+
+.selected-temp {
+  border: 3px solid rgba(14, 110, 122, 1) !important;
+}
+
+.tempImg:hover {
+  border: 3px solid rgba(14, 110, 122, 1) !important;
+  transition: all 0.1s ease;
 }
 </style>
