@@ -324,7 +324,84 @@ class ResumeController extends Controller
                 ->where('user_id', $userId)
                 ->get();
 
-            Log::info('Data ' . $resume);
+            // Log::info('Data ' . $resume);
+
+            // Only change required key names/column names like in viewResume()
+            $transformedResumes = $resume->map(function ($item) {
+                $data = $item->toArray();
+
+                // Change last_name to lastName if present
+                if (isset($data['last_name'])) {
+                    $data['lastName'] = $data['last_name'];
+                    unset($data['last_name']);
+                }
+
+                // Change job_title to jobTitle if present
+                if (isset($data['job_title'])) {
+                    $data['jobTitle'] = $data['job_title'];
+                    unset($data['job_title']);
+                }
+
+                // Change postal_code to postalCode if present
+                if (isset($data['postal_code'])) {
+                    $data['postalCode'] = $data['postal_code'];
+                    unset($data['postal_code']);
+                }
+
+                // Rename experiences to employmentHistory and adjust date keys
+                if (isset($data['experiences'])) {
+                    $data['employmentHistory'] = array_map(function ($exp) {
+                        if (isset($exp['start_date'])) {
+                            $exp['startDate'] = $exp['start_date'];
+                            unset($exp['start_date']);
+                        }
+                        if (isset($exp['end_date'])) {
+                            $exp['endDate'] = $exp['end_date'];
+                            unset($exp['end_date']);
+                        }
+                        if (isset($exp['job_title'])) {
+                            $exp['jobTitle'] = $exp['job_title'];
+                            unset($exp['job_title']);
+                        }
+                        // Format dates as "Y-m" (month and year) if not null
+                        if (!empty($exp['startDate'])) {
+                            $exp['startDate'] = date('Y-m', strtotime($exp['startDate']));
+                        }
+                        if (!empty($exp['endDate'])) {
+                            $exp['endDate'] = date('Y-m', strtotime($exp['endDate']));
+                        }
+                        return $exp;
+                    }, $data['experiences']);
+                    unset($data['experiences']);
+                }
+
+                // Adjust education date keys
+                if (isset($data['education'])) {
+                    $data['education'] = array_map(function ($edu) {
+                        if (isset($edu['start_date'])) {
+                            $edu['startDate'] = $edu['start_date'];
+                            unset($edu['start_date']);
+                        }
+                        if (isset($edu['end_date'])) {
+                            $edu['endDate'] = $edu['end_date'];
+                            unset($edu['end_date']);
+                        }
+                        // Format dates as "Y-m" (month and year) if not null
+                        if (!empty($edu['startDate'])) {
+                            $edu['startDate'] = date('Y-m', strtotime($edu['startDate']));
+                        }
+                        if (!empty($edu['endDate'])) {
+                            $edu['endDate'] = date('Y-m', strtotime($edu['endDate']));
+                        }
+                        return $edu;
+                    }, $data['education']);
+                }
+
+
+                return $data;
+            });
+            $resume = $transformedResumes;
+
             return response()->json([
                 'success' => true,
                 'data' => $resume
@@ -377,53 +454,189 @@ class ResumeController extends Controller
     }
 
 
-public function updateTemp(Request $request, $resumeId)
-{
-    // Validate input
-    $validator = Validator::make($request->all(), [
-        'template_id' => 'required|exists:resume_templates,id',
-    ]);
-
-    if ($validator->fails()) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Validation failed',
-            'errors' => $validator->errors()
-        ], 422);
-    }
-
-    try {
-        $resume = Resume::findOrFail($resumeId);
-
-        // Optionally, check if the authenticated user owns the resume
-        // if (auth()->id() !== $resume->user_id) {
-        //     return response()->json([
-        //         'success' => false,
-        //         'message' => 'Unauthorized'
-        //     ], 403);
-        // }
-
-        $resume->template_id = $request->input('template_id');
-        $resume->save();
-
-        // Optionally, return the updated resume or just success
-        return response()->json([
-            'success' => true,
-            'message' => 'Template updated successfully',
-            'data' => $resume
+    public function updateTemp(Request $request, $resumeId)
+    {
+        // Validate input
+        $validator = Validator::make($request->all(), [
+            'template_id' => 'required|exists:resume_templates,id',
         ]);
-    } catch (ModelNotFoundException $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Resume not found'
-        ], 404);
-    } catch (\Exception $e) {
-        Log::error('Failed to update template: ' . $e->getMessage());
-        return response()->json([
-            'success' => false,
-            'message' => 'Failed to update template',
-            'error' => $e->getMessage()
-        ], 500);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $resume = Resume::findOrFail($resumeId);
+
+            // Optionally, check if the authenticated user owns the resume
+            // if (auth()->id() !== $resume->user_id) {
+            //     return response()->json([
+            //         'success' => false,
+            //         'message' => 'Unauthorized'
+            //     ], 403);
+            // }
+
+            $resume->template_id = $request->input('template_id');
+            $resume->save();
+
+            // Optionally, return the updated resume or just success
+            return response()->json([
+                'success' => true,
+                'message' => 'Template updated successfully',
+                'data' => $resume
+            ]);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Resume not found'
+            ], 404);
+        } catch (\Exception $e) {
+            Log::error('Failed to update template: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update template',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
-}
+
+    /**
+     * Update an existing resume and its related data.
+     */
+    public function update(Request $request, $id)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'name' => 'required|string|max:255',
+                'lastName' => 'required|string|max:255',
+                'email' => 'required|email|max:255',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $resume = Resume::findOrFail($id);
+
+            // Update main resume fields
+            $resume->update([
+                'name' => $request->name,
+                'last_name' => $request->lastName,
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'address' => $request->address,
+                'city' => $request->city,
+                'postal_code' => $request->postalCode,
+                'country' => $request->country,
+                'job_title' => $request->jobTitle,
+                'summary' => $request->summary,
+                'template_id' => $request->template_id ?? $resume->template_id,
+            ]);
+
+            // Update preview image if provided
+            if ($request->filled('previewImage')) {
+                try {
+                    $base64Image = $request->previewImage;
+                    $imageData = str_replace('data:image/png;base64,', '', $base64Image);
+                    $imageData = str_replace(' ', '+', $imageData);
+                    $imageBinary = base64_decode($imageData);
+                    $imageName = 'preview_' . Str::random(10) . '.png';
+                    $directory = public_path('resume_previews');
+                    if (!file_exists($directory)) {
+                        mkdir($directory, 0755, true);
+                    }
+                    $image = imagecreatefromstring($imageBinary);
+                    if ($image) {
+                        imagefilter($image, IMG_FILTER_GRAYSCALE);
+                        $fullPath = $directory . '/' . $imageName;
+                        imagepng($image, $fullPath);
+                        imagedestroy($image);
+                        $resume->preview_image = '/resume_previews/' . $imageName;
+                        $resume->save();
+                    }
+                } catch (\Exception $e) {
+                    Log::error('Failed to process preview image: ' . $e->getMessage());
+                }
+            }
+
+            // Replace related experiences
+            Experience::where('resume_id', $resume->id)->delete();
+            if ($request->filled('employmentHistory') && is_array($request->employmentHistory)) {
+                foreach ($request->employmentHistory as $employment) {
+                    if (isset($employment['jobTitle']) && isset($employment['company'])) {
+                        Experience::create([
+                            'resume_id' => $resume->id,
+                            'job_title' => $employment['jobTitle'],
+                            'company' => $employment['company'],
+                            'start_date' => $this->parseDate($employment['startDate'] ?? null),
+                            'end_date' => $this->parseDate($employment['endDate'] ?? null),
+                            'city' => $employment['city'] ?? null,
+                            'description' => $employment['description'] ?? null,
+                        ]);
+                    }
+                }
+            }
+
+            // Replace related education
+            Education::where('resume_id', $resume->id)->delete();
+            if ($request->filled('education') && is_array($request->education)) {
+                foreach ($request->education as $edu) {
+                    if (isset($edu['school']) && isset($edu['degree'])) {
+                        Education::create([
+                            'resume_id' => $resume->id,
+                            'school' => $edu['school'],
+                            'degree' => $edu['degree'],
+                            'start_date' => $this->parseDate($edu['startDate'] ?? null),
+                            'end_date' => $this->parseDate($edu['endDate'] ?? null),
+                            'location' => $edu['city'] ?? null,
+                            'description' => $edu['description'] ?? null,
+                        ]);
+                    }
+                }
+            }
+
+            // Replace related skills
+            Skill::where('resume_id', $resume->id)->delete();
+            if ($request->filled('skills') && is_array($request->skills)) {
+                foreach ($request->skills as $skill) {
+                    if (isset($skill['skill']) && !empty(trim($skill['skill']))) {
+                        Skill::create([
+                            'resume_id' => $resume->id,
+                            'skill' => $skill['skill'],
+                            'level' => $skill['level'] ?? 'Beginner',
+                        ]);
+                    }
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Resume updated successfully',
+                'data' => [
+                    'resume_id' => $resume->id,
+                    'resume' => $resume
+                ]
+            ]);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Resume not found',
+            ], 404);
+        } catch (\Exception $e) {
+            Log::error('Error updating resume: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update resume',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

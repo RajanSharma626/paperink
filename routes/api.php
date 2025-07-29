@@ -31,10 +31,13 @@ Route::post('/cover/{coverId}/update-template', [CoverLetterController::class, '
 
 Route::post('/cover-letters', [CoverLetterController::class, 'store']);
 Route::get('/cover-letters/{id}', [CoverLetterController::class, 'show']);
+Route::put('/cover-letters/{id}', [CoverLetterController::class, 'update']);
 
 Route::post('/my-resume', [ResumeController::class, 'myResume']);
 
 Route::post('/my-cover', [CoverLetterController::class, 'myCoverLetter']);
+
+Route::put('/resumes/{id}', [ResumeController::class, 'update']);
 
 // PDF Generation routes
 Route::post('/generate-pdf', [PDFController::class, 'generatePDF']);

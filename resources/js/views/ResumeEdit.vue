@@ -12,8 +12,7 @@
               </div>
               <div class="d-flex justify-content-between align-items-center flex-wrap">
                 <h4 class="mb-0">{{ currentStepTitle }}</h4>
-                <span class="editor-tip mt-2 mt-lg-0">Users who added phone number and email received 64% more positive
-                  feedback from recruiters.</span>
+                <span class="editor-tip mt-2 mt-lg-0">Users who added phone number and email received 64% more positive feedback from recruiters.</span>
               </div>
             </div>
             <!-- Form -->
@@ -23,18 +22,17 @@
                   <!-- Text Input -->
                   <div v-if="field.type === 'text'" class="col-6 mb-3">
                     <label class="form-label">{{ field.label }}</label>
-                    <input v-model="resumeStore.resumeData[field.field]" class="form-custom" />
+                    <input v-model="resumeData[field.field]" class="form-custom" />
                   </div>
                   <!-- Rich Text Area (Summary and other descriptions) -->
                   <div v-else-if="field.type === 'richtext'" class="col-12 mb-3">
                     <label class="form-label">{{ field.label }}</label>
-                    <QuillEditor v-model="resumeStore.resumeData[field.field]" />
+                    <QuillEditor v-model="resumeData[field.field]" :key="route.params.id + '-' + field.field" />
                   </div>
                   <!-- Employment History -->
                   <div v-else-if="field.type === 'employment'" class="col-12 mb-3">
                     <div class="row">
-                      <div v-for="(job, jobIndex) in resumeStore.resumeData.employmentHistory" :key="jobIndex"
-                        class="col-12 mb-3 border p-3 rounded">
+                      <div v-for="(job, jobIndex) in resumeData.employmentHistory" :key="jobIndex" class="col-12 mb-3 border p-3 rounded">
                         <div class="row">
                           <div class="col-6">
                             <input v-model="job.jobTitle" class="form-custom mb-2" placeholder="Job Title" />
@@ -45,8 +43,7 @@
                         </div>
                         <div class="row">
                           <div class="col-6">
-                            <input v-model="job.startDate" type="month" class="form-custom mb-2"
-                              placeholder="Start Date" />
+                            <input v-model="job.startDate" type="month" class="form-custom mb-2" placeholder="Start Date" />
                           </div>
                           <div class="col-6">
                             <input v-model="job.endDate" type="month" class="form-custom mb-2" placeholder="End Date" />
@@ -59,22 +56,19 @@
                         </button>
                       </div>
                       <div class="col-12">
-                        <a @click.prevent="addEmployment" href="#" class="theme-clr mt-2 add-field-btn">+ Add one more
-                          employment</a>
+                        <a @click.prevent="addEmployment" href="#" class="theme-clr mt-2 add-field-btn">+ Add one more employment</a>
                       </div>
                     </div>
                   </div>
                   <!-- Education History -->
                   <div v-else-if="field.type === 'education'" class="col-12 mb-3">
                     <div class="row">
-                      <div v-for="(edu, eduIndex) in resumeStore.resumeData.education" :key="eduIndex"
-                        class="col-12 mb-3 border p-3 rounded">
+                      <div v-for="(edu, eduIndex) in resumeData.education" :key="eduIndex" class="col-12 mb-3 border p-3 rounded">
                         <input v-model="edu.school" class="form-custom mb-2" placeholder="School" />
                         <input v-model="edu.degree" class="form-custom mb-2" placeholder="Degree" />
                         <div class="row">
                           <div class="col-6">
-                            <input v-model="edu.startDate" type="month" class="form-custom mb-2"
-                              placeholder="Start Date" />
+                            <input v-model="edu.startDate" type="month" class="form-custom mb-2" placeholder="Start Date" />
                           </div>
                           <div class="col-6">
                             <input v-model="edu.endDate" type="month" class="form-custom mb-2" placeholder="End Date" />
@@ -82,13 +76,10 @@
                         </div>
                         <input v-model="edu.city" class="form-custom mb-2" placeholder="City" />
                         <QuillEditor v-model="edu.description" />
-                        <button @click.prevent="removeEducation(eduIndex)" class="btn btn-danger btn-sm mt-2">
-                          Remove
-                        </button>
+                        <button @click.prevent="removeEducation(eduIndex)" class="btn btn-danger btn-sm mt-2">Remove</button>
                       </div>
                       <div class="col-12">
-                        <a @click.prevent="addEducation" href="#" class="theme-clr mt-2 add-field-btn">+ Add one more
-                          education</a>
+                        <a @click.prevent="addEducation" href="#" class="theme-clr mt-2 add-field-btn">+ Add one more education</a>
                       </div>
                     </div>
                   </div>
@@ -96,8 +87,7 @@
                   <div v-else-if="field.type === 'skills'" class="col-12 mb-3">
                     <label>{{ field.label }}</label>
                     <div class="row">
-                      <div v-for="(skill, skillIndex) in resumeStore.resumeData.skills" :key="skillIndex"
-                        class="col-12 mb-3 border p-3 rounded">
+                      <div v-for="(skill, skillIndex) in resumeData.skills" :key="skillIndex" class="col-12 mb-3 border p-3 rounded">
                         <input v-model="skill.skill" class="form-custom mb-2" placeholder="Skill Name" />
                         <select v-model="skill.level" class="form-custom">
                           <option value="">Select Level</option>
@@ -105,9 +95,7 @@
                           <option value="Intermediate">Intermediate</option>
                           <option value="Expert">Expert</option>
                         </select>
-                        <button @click.prevent="removeSkill(skillIndex)" class="btn btn-danger btn-sm mt-2">
-                          Remove
-                        </button>
+                        <button @click.prevent="removeSkill(skillIndex)" class="btn btn-danger btn-sm mt-2">Remove</button>
                       </div>
                       <div class="col-12">
                         <button @click.prevent="addSkill" class="btn btn-primary mt-2 add-field-btn">Add Skill</button>
@@ -118,8 +106,7 @@
               </div>
               <!-- Navigation Button -->
               <div class="d-flex justify-content-between mt-4 gap-3">
-                <button v-if="step > 1" @click.prevent="handlePrev" type="button"
-                  class="btn btn-secondary btn-lg flex-grow-1">
+                <button v-if="step > 1" @click.prevent="handlePrev" type="button" class="btn btn-secondary btn-lg flex-grow-1">
                   <i class="bi bi-arrow-left-short"></i> Back
                 </button>
                 <button v-if="step < totalSteps" type="submit" class="btn theme-btn btn-lg flex-grow-1">
@@ -127,7 +114,7 @@
                 </button>
                 <button v-else type="submit" class="btn theme-btn btn-lg flex-grow-1" :disabled="isGeneratingPDF">
                   <span v-if="isGeneratingPDF" class="spinner-border spinner-border-sm me-2" role="status"></span>
-                  {{ isGeneratingPDF ? 'Saving Resume...' : 'Save Resume' }}
+                  {{ isGeneratingPDF ? 'Saving Resume...' : 'Save Changes' }}
                 </button>
               </div>
             </form>
@@ -136,8 +123,7 @@
         <!-- Right: Preview -->
         <div class="col-lg-6 editor-preview-bg">
           <div class="editor-preview-card">
-            <div v-if="!templateComponent" class="d-flex justify-content-center align-items-center"
-              style="height: 100%;">
+            <div v-if="!templateComponent" class="d-flex justify-content-center align-items-center" style="height: 100%;">
               <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">Loading...</span>
               </div>
@@ -146,7 +132,7 @@
               <component 
                 ref="resumePreview"
                 :is="templateComponent" 
-                :resume="resumeStore.resumeData"
+                :resume="resumeData"
                 class="resume-preview-component"
               />
             </div>
@@ -154,7 +140,6 @@
         </div>
       </div>
     </div>
-
     <!-- Loading Overlay for Preview Generation -->
     <div v-if="isGeneratingPDF && showPreviewLoading" class="preview-loading-overlay">
       <div class="loading-content">
@@ -168,13 +153,12 @@
         </div>
       </div>
     </div>
-
     <!-- Hidden Preview Container for Image Generation -->
     <div ref="hiddenPreviewContainer" class="hidden-preview-container" v-show="false">
       <component 
         v-if="templateComponent && isGeneratingPDF"
         :is="templateComponent" 
-        :resume="resumeStore.resumeData"
+        :resume="resumeData"
         class="hidden-resume-preview"
       />
     </div>
@@ -182,81 +166,36 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch, nextTick } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import axios from 'axios'
-import html2canvas from 'html2canvas'
-import { useResumeStore } from '@/stores/resume'
-import QuillEditor from '@/Components/form/QuillEditor.vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import axios from 'axios';
+import html2canvas from 'html2canvas';
+import QuillEditor from '@/Components/form/QuillEditor.vue';
 
-const route = useRoute()
-const router = useRouter()
-const resumeStore = useResumeStore()
-const templateComponent = ref(null)
-const isGeneratingPDF = ref(false)
-const showPreviewLoading = ref(false)
-const resumePreview = ref(null)
-const hiddenPreviewContainer = ref(null)
+const route = useRoute();
+const router = useRouter();
+const templateComponent = ref(null);
+const isGeneratingPDF = ref(false);
+const showPreviewLoading = ref(false);
+const resumePreview = ref(null);
+const hiddenPreviewContainer = ref(null);
 
-const isEditMode = computed(() => Boolean(route.params.id));
-
-// Load resume data if editing
-const loadResumeForEdit = async () => {
-  if (!isEditMode.value) return;
-  try {
-    const { data } = await axios.get(`/api/resumes/${route.params.id}`);
-    if (data.success && data.data) {
-      // Map API data to store
-      Object.assign(resumeStore.resumeData, data.data);
-      // If template is present, load it
-      if (data.data.template) {
-        await loadTemplateByComponent(data.data.template);
-      }
-    } else {
-      alert('Failed to load resume for editing.');
-      router.replace('/dashboard');
-    }
-  } catch (err) {
-    alert('Resume not found.');
-    router.replace('/dashboard');
-  }
-};
-
-// Helper to load template by component name
-const loadTemplateByComponent = async (componentName) => {
-  try {
-    const module = await import(`@/components/templates/${componentName}.vue`);
-    templateComponent.value = module.default;
-  } catch (error) {
-    console.error('Failed to load template:', error);
-    alert('Failed to load resume template. Please try again.');
-  }
-};
-
-// Overwrite loadTemplate to use template slug if not editing
-const loadTemplate = async () => {
-  if (isEditMode.value) return; // skip if editing, handled by loadResumeForEdit
-  try {
-    const response = await axios.get(`/api/resume-template/${route.params.template}`);
-    const componentName = response.data.component;
-    await loadTemplateByComponent(componentName);
-  } catch (error) {
-    console.error('Failed to load template:', error);
-    alert('Failed to load resume template. Please try again.');
-  }
-};
-
-onMounted(async () => {
-  if (isEditMode.value) {
-    await loadResumeForEdit();
-  } else {
-    await loadTemplate();
-  }
+const resumeData = ref({
+  name: '',
+  lastName: '',
+  email: '',
+  phone: '',
+  address: '',
+  city: '',
+  postalCode: '',
+  country: '',
+  summary: '',
+  employmentHistory: [],
+  education: [],
+  skills: [],
 });
 
-// Stepper Logic
-const step = ref(1)
-
+const step = ref(1);
 const formSteps = [
   [
     { field: 'name', label: 'First Name', type: 'text' },
@@ -273,35 +212,58 @@ const formSteps = [
   [{ field: 'employmentHistory', label: 'Employment History', type: 'employment' }],
   [{ field: 'education', label: 'Education', type: 'education' }],
   [{ field: 'skills', label: 'Skills', type: 'skills' }],
-]
-
+];
 const stepTitles = [
   'Personal details',
   'Employment History',
   'Education',
-  'Skills'
-]
-const currentStepTitle = computed(() => stepTitles[step.value - 1])
-const nextStepTitle = computed(() => stepTitles[step.value] || 'Finish')
-const currentFields = computed(() => formSteps[step.value - 1])
-const totalSteps = computed(() => formSteps.length)
-const progressPercent = computed(() => Math.round((step.value - 1) / (totalSteps.value - 1) * 100))
+  'Skills',
+];
+const currentStepTitle = computed(() => stepTitles[step.value - 1]);
+const nextStepTitle = computed(() => stepTitles[step.value] || 'Finish');
+const currentFields = computed(() => formSteps[step.value - 1]);
+const totalSteps = computed(() => formSteps.length);
+const progressPercent = computed(() => Math.round((step.value - 1) / (totalSteps.value - 1) * 100));
 
-// Generate Preview Image
+const fetchResume = async () => {
+  try {
+    const { data } = await axios.get(`/api/resumes/${route.params.id}`);
+    if (data.success && data.data) {
+      Object.assign(resumeData.value, data.data);
+      if (data.data.template) {
+        await loadTemplateByComponent(data.data.template);
+      }
+      console.log('Loaded resume data:', resumeData.value);
+    } else {
+      alert('Failed to load resume.');
+      router.replace('/dashboard');
+    }
+  } catch (err) {
+    alert('Resume not found.');
+    router.replace('/dashboard');
+  }
+};
+
+const loadTemplateByComponent = async (componentName) => {
+  try {
+    const module = await import(`@/components/templates/${componentName}.vue`);
+    templateComponent.value = module.default;
+  } catch (error) {
+    alert('Failed to load resume template.');
+  }
+};
+
+onMounted(fetchResume);
+
 const generatePreviewImage = async () => {
   try {
-    showPreviewLoading.value = true
-    
-    // Wait for DOM to update
-    await nextTick()
-    
-    // Give additional time for fonts and styles to load
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    
+    showPreviewLoading.value = true;
+    await nextTick();
+    await new Promise(resolve => setTimeout(resolve, 2000));
     const canvas = await html2canvas(hiddenPreviewContainer.value, {
-      width: 794, // A4 width at 96 DPI
-      height: 1123, // A4 height at 96 DPI
-      scale: 2, // Higher resolution
+      width: 794,
+      height: 1123,
+      scale: 2,
       useCORS: true,
       allowTaint: false,
       backgroundColor: '#ffffff',
@@ -311,8 +273,7 @@ const generatePreviewImage = async () => {
       letterRendering: true,
       foreignObjectRendering: false,
       onclone: (clonedDoc) => {
-        // Apply consistent styles to cloned document
-        const style = clonedDoc.createElement('style')
+        const style = clonedDoc.createElement('style');
         style.textContent = `
           * {
             -webkit-print-color-adjust: exact !important;
@@ -335,119 +296,84 @@ const generatePreviewImage = async () => {
           .hidden-resume-preview * {
             box-sizing: border-box !important;
           }
-          /* Remove any animations or transitions */
-          .hidden-resume-preview *, 
-          .hidden-resume-preview *::before, 
-          .hidden-resume-preview *::after {
+          .hidden-resume-preview *, .hidden-resume-preview *::before, .hidden-resume-preview *::after {
             animation-duration: 0s !important;
             animation-delay: 0s !important;
             transition-duration: 0s !important;
             transition-delay: 0s !important;
           }
-        `
-        clonedDoc.head.appendChild(style)
-        
-        // Remove any problematic elements
-        const problematicElements = clonedDoc.querySelectorAll('script, noscript, iframe, object, embed')
-        problematicElements.forEach(el => el.remove())
-      }
-    })
-    
-    // Convert canvas to base64
-    const imageData = canvas.toDataURL('image/png', 0.95)
-    
-    showPreviewLoading.value = false
-    return imageData
-    
+        `;
+        clonedDoc.head.appendChild(style);
+        const problematicElements = clonedDoc.querySelectorAll('script, noscript, iframe, object, embed');
+        problematicElements.forEach(el => el.remove());
+      },
+    });
+    const imageData = canvas.toDataURL('image/png', 0.95);
+    showPreviewLoading.value = false;
+    return imageData;
   } catch (error) {
-    console.error('Error generating preview:', error)
-    showPreviewLoading.value = false
-    throw error
+    showPreviewLoading.value = false;
+    throw error;
   }
-}
+};
 
-// Step Functions
 async function handleNext() {
   if (step.value < totalSteps.value) {
     step.value++;
   } else {
     try {
       isGeneratingPDF.value = true;
-      // Generate preview image first
       let previewImageData = null;
       try {
         previewImageData = await generatePreviewImage();
-      } catch (error) {
-        // Continue without preview image
-      }
-      // Save or update resume
-      let savedResume;
-      if (isEditMode.value) {
-        // PUT update
-        const response = await axios.put(`/api/resumes/${route.params.id}`, {
-          ...resumeStore.resumeData,
-          previewImage: previewImageData,
-        });
-        savedResume = response.data;
+      } catch (error) {}
+      const response = await axios.put(`/api/resumes/${route.params.id}`, {
+        ...resumeData.value,
+        previewImage: previewImageData,
+      });
+      if (response.data.success) {
+        router.replace(`/resume/${route.params.id}/view`);
       } else {
-        // Create (existing logic)
-        savedResume = await resumeStore.saveResume(
-          resumeStore.resumeData,
-          route.params.template,
-          previewImageData
-        );
+        alert(response.data.message || 'Failed to update resume.');
       }
-      if (savedResume.success) {
-        const resumeId = savedResume.resumeId || savedResume.data?.resume_id || route.params.id;
-        router.replace(`/resume/${resumeId}/view`);
-      } else {
-        alert(savedResume.message || 'Failed to save resume');
-      }
-    } catch (error) {
-      alert('An unexpected error occurred. Please try again.');
+    } catch (err) {
+      alert('An error occurred while updating.');
     } finally {
       isGeneratingPDF.value = false;
     }
   }
 }
-
 function handlePrev() {
-  if (step.value > 1) step.value--
+  if (step.value > 1) step.value--;
 }
-
 watch(step, (newStep) => {
-  // Employment step (step 2, index 1)
-  if (newStep === 2 && resumeStore.resumeData.employmentHistory.length === 0) {
-    addEmployment()
+  if (newStep === 2 && resumeData.value.employmentHistory.length === 0) {
+    addEmployment();
   }
-  // Education step (step 3, index 2)
-  if (newStep === 3 && resumeStore.resumeData.education.length === 0) {
-    addEducation()
+  if (newStep === 3 && resumeData.value.education.length === 0) {
+    addEducation();
   }
-  // Skills step (step 4, index 3)
-  if (newStep === 4 && resumeStore.resumeData.skills.length === 0) {
-    addSkill()
+  if (newStep === 4 && resumeData.value.skills.length === 0) {
+    addSkill();
   }
-})
-
-// Manage Employment, Education, Skills
+});
 function addEmployment() {
-  resumeStore.resumeData.employmentHistory.push({ jobTitle: '', company: '', startDate: '', endDate: '', city: '', description: '' })
+  resumeData.value.employmentHistory.push({ jobTitle: '', company: '', startDate: '', endDate: '', city: '', description: '' });
 }
 function removeEmployment(index) {
-  resumeStore.resumeData.employmentHistory.splice(index, 1)
+  resumeData.value.employmentHistory.splice(index, 1);
 }
 function addEducation() {
-  resumeStore.resumeData.education.push({ school: '', degree: '', startDate: '', endDate: '', city: '', description: '' })
+  resumeData.value.education.push({ school: '', degree: '', startDate: '', endDate: '', city: '', description: '' });
 }
 function removeEducation(index) {
-  resumeStore.resumeData.education.splice(index, 1)
+  resumeData.value.education.splice(index, 1);
 }
 function addSkill() {
-  resumeStore.resumeData.skills.push({ skill: '', level: 'Beginner' })
+  resumeData.value.skills.push({ skill: '', level: 'Beginner' });
 }
 function removeSkill(index) {
-  resumeStore.resumeData.skills.splice(index, 1)
+  resumeData.value.skills.splice(index, 1);
 }
 </script>
 
@@ -457,7 +383,6 @@ function removeSkill(index) {
   height: 100vh;
   width: 100%;
 }
-
 .editor-form-card {
   height: 100vh;
   overflow-y: auto;
@@ -466,43 +391,35 @@ function removeSkill(index) {
   -ms-overflow-style: none;
   /* IE and Edge */
 }
-
 .editor-form-card::-webkit-scrollbar {
   display: none;
   /* Chrome, Safari, Opera */
 }
-
 .editor-container {
   /* max-width: 1600px; */
   margin: 0 auto;
 }
-
 .editor-card {
   padding: 40px 32px 32px 32px;
   width: 100%;
   /* max-width: 600px; */
 }
-
 .editor-header h4 {
   font-weight: 700;
   font-size: 1.5rem;
 }
-
 .editor-tip {
   color: #6c757d;
   font-size: 0.95rem;
 }
-
 .progress {
   background: #e9ecef;
   border-radius: 3px;
 }
-
 .progress-bar {
   background: #0e6e7a;
   transition: width 0.3s;
 }
-
 .editor-preview-card {
   /* background: #fff;
   border-radius: 18px;
@@ -516,24 +433,20 @@ function removeSkill(index) {
   -ms-overflow-style: auto;
   /* IE and Edge */
 }
-
 .editor-preview-card::-webkit-scrollbar {
   width: 4px;
   /* Thin scrollbar for Chrome, Safari, Opera */
   background: transparent;
 }
-
 .editor-preview-card::-webkit-scrollbar-thumb {
   background: #cfd8dc;
   border-radius: 4px;
 }
-
 .btn-lg {
   font-size: 1.15rem;
   padding: 14px 0;
   border-radius: 8px;
 }
-
 label {
   display: flex;
   align-items: center;
@@ -542,7 +455,6 @@ label {
   color: rgb(130, 139, 162);
   font-weight: 300;
 }
-
 .form-custom {
   border-radius: 3px;
   padding: 12px 16px;
@@ -555,12 +467,10 @@ label {
   color: rgb(30, 37, 50);
   transition: color 0.1s;
 }
-
 .form-custom:focus {
   color: rgb(30, 37, 50);
   border-bottom: 2px solid #0e6e7a;
 }
-
 .add-field-btn {
   font-size: 1rem;
   color: #0e6e7a;
@@ -570,7 +480,6 @@ label {
   text-decoration: underline;
   padding: 0;
 }
-
 /* Preview Loading Overlay */
 .preview-loading-overlay {
   position: fixed;
@@ -584,7 +493,6 @@ label {
   justify-content: center;
   z-index: 9999;
 }
-
 .loading-content {
   text-align: center;
   padding: 2rem;
@@ -592,7 +500,6 @@ label {
   border-radius: 12px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
-
 /* Hidden Preview Container */
 .hidden-preview-container {
   position: fixed;
@@ -605,7 +512,6 @@ label {
   background: white;
   overflow: hidden;
 }
-
 :deep(.hidden-resume-preview) {
   width: 794px !important;
   min-height: 1123px !important;
@@ -620,24 +526,18 @@ label {
   zoom: 1 !important;
   font-size: 14px !important;
 }
-
-/* Override any template styles that might interfere */
 :deep(.hidden-resume-preview *) {
   box-sizing: border-box !important;
 }
-
-/* Remove any animations for clean capture */
 :deep(.hidden-resume-preview *), 
 :deep(.hidden-resume-preview *::before), 
 :deep(.hidden-resume-preview *::after) {
   animation: none !important;
   transition: none !important;
 }
-
-/* Ensure proper font rendering */
 :deep(.hidden-resume-preview) {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
-</style>
+</style> 

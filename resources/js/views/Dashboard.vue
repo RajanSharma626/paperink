@@ -74,17 +74,52 @@
 
                                 <!-- Resume Template Cards -->
                                 <div v-for="resume in resumes" :key="resume.id" class="col-12 col-sm-6 col-lg-3">
-                                    <router-link :to="`/resume/${resume.id}/view`" class="text-decoration-none">
-                                        <div class="card h-100 border">
-                                            <div class="card-body d-flex flex-column justify-content-between p-0">
-                                                <div>
-                                                    <img :src="resume.template.preview_img"
-                                                        class="img-fluid rounded custom-boc-shadow"
-                                                        alt="Template Preview" />
+                                    <div class="position-relative resume-card-group">
+                                        <router-link :to="`/resume/${resume.id}/view`" class="text-decoration-none">
+                                            <div class="card h-100 border">
+                                                <div class="card-body d-flex flex-column justify-content-between p-0">
+                                                    <div>
+                                                        <img :src="resume.template.preview_img"
+                                                            class="img-fluid rounded custom-boc-shadow"
+                                                            alt="Template Preview" />
+                                                    </div>
                                                 </div>
                                             </div>
+                                        </router-link>
+                                        <!-- Hover Actions Overlay -->
+                                        <transition name="fade-slide">
+                                            <div v-if="true"
+                                                class="resume-hover-overlay d-flex flex-column align-items-center justify-content-center">
+                                                <div class="d-flex flex-row gap-2 w-100 justify-content-center mb-2">
+                                                    <router-link :to="`/resume/${resume.id}/edit`"
+                                                        class="dashboard-action-btn edit" title="Edit Resume">
+                                                        <i class="bi bi-pencil-square me-1"></i> Edit
+                                                    </router-link>
+                                                    <router-link :to="`/resume/${resume.id}/view`"
+                                                        class="dashboard-action-btn view" title="View Resume">
+                                                        <i class="bi bi-eye me-1"></i> View
+                                                    </router-link>
+                                                </div>
+                                                <div class="w-100 d-flex justify-content-center">
+                                                    <button @click="downloadResumePdf(resume)"
+                                                        :disabled="downloadingResumeId === resume.id"
+                                                        class="dashboard-action-btn download" title="Download PDF">
+                                                        <span v-if="downloadingResumeId === resume.id"
+                                                            class="spinner-border spinner-border-sm me-1 fs-6"></span>
+                                                        <i v-else class="bi bi-download me-1"></i>
+                                                        <span
+                                                            v-if="downloadingResumeId === resume.id">Downloading...</span>
+                                                        <span v-else>Download</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </transition>
+                                        <!-- Hidden Preview for PDF Generation -->
+                                        <div v-if="pdfResumeId === resume.id" style="display:none">
+                                            <component ref="hiddenResumePreview" :is="hiddenTemplateComponent"
+                                                :resume="resume" class="hidden-resume-preview" />
                                         </div>
-                                    </router-link>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -180,6 +215,19 @@ const tabs = [
 
 const resumes = ref([]);
 const coverLetters = ref([]);
+const pdfResumeId = ref(null);
+const hiddenResumePreview = ref(null);
+const hiddenTemplateComponent = ref(null);
+const downloadingResumeId = ref(null);
+const templateComponentCache = {};
+const getTemplateComponent = (componentName) => {
+    if (!componentName) return null;
+    if (templateComponentCache[componentName]) return templateComponentCache[componentName];
+    // Dynamic import
+    const comp = () => import(`@/components/templates/${componentName}.vue`);
+    templateComponentCache[componentName] = comp;
+    return comp;
+};
 
 // Improved error handling and retry logic
 const makeApiRequest = async (url, data, retries = 3) => {
@@ -330,6 +378,85 @@ defineExpose({
     fetchResume,
     fetchCover
 });
+
+// Add download handler
+const downloadResumePdf = async (resume) => {
+    downloadingResumeId.value = resume.id;
+    // Dynamically import the template component
+    try {
+        const module = await import(`@/components/templates/${resume.template.component}.vue`);
+        hiddenTemplateComponent.value = module.default;
+    } catch (e) {
+        alert('Could not load resume template for PDF.');
+        downloadingResumeId.value = null;
+        return;
+    }
+    pdfResumeId.value = resume.id;
+    await nextTick();
+    // Wait for DOM to render hidden preview (longer delay for async component)
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    const previewEl = hiddenResumePreview.value?.$el || document.querySelector('.hidden-resume-preview');
+    if (!previewEl) {
+        alert('Could not render resume preview for PDF.');
+        pdfResumeId.value = null;
+        downloadingResumeId.value = null;
+        return;
+    }
+    const htmlContent = previewEl.outerHTML;
+    const styles = getAllStyles();
+    try {
+        const response = await fetch('/api/generate-pdf', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/pdf',
+            },
+            body: JSON.stringify({
+                html: htmlContent,
+                styles,
+                resume_id: resume.id,
+                resume_name: resume.name || 'Resume',
+                options: { format: 'A4' },
+            }),
+        });
+        if (!response.ok) throw new Error('Failed to generate PDF');
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${resume.name || 'Resume'}_${new Date().toISOString().slice(0, 10)}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+    } catch (err) {
+        alert('Could not download PDF.');
+    } finally {
+        pdfResumeId.value = null;
+        hiddenTemplateComponent.value = null;
+        downloadingResumeId.value = null;
+    }
+};
+
+function getAllStyles() {
+    let styles = '';
+    const inlineStyles = document.querySelector('style');
+    if (inlineStyles) styles += inlineStyles.innerHTML + '\n';
+    const styleSheets = document.styleSheets;
+    for (let i = 0; i < styleSheets.length; i++) {
+        try {
+            const rules = styleSheets[i].cssRules || styleSheets[i].rules;
+            if (rules) {
+                for (let j = 0; j < rules.length; j++) {
+                    styles += rules[j].cssText + '\n';
+                }
+            }
+        } catch (e) {
+            // Cross-origin stylesheets
+        }
+    }
+    return styles;
+}
 </script>
 
 <style scoped>
@@ -380,7 +507,121 @@ defineExpose({
 }
 
 .spinner-border {
-    width: 3rem;
-    height: 3rem;
+    width: 1rem;
+    height: 1rem;
+}
+
+.resume-card-group {
+    position: relative;
+    overflow: visible;
+}
+
+.resume-hover-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(44, 62, 80, 0.82);
+    opacity: 0;
+    transition: opacity 0.25s, transform 0.25s;
+    z-index: 2;
+    color: #fff;
+    border-radius: 0.5rem;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    transform: translateY(20px);
+}
+
+.resume-card-group:hover .resume-hover-overlay {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+.dashboard-action-btn {
+    min-width: 120px;
+    justify-content: center;
+    border-radius: 2rem;
+    font-weight: 600;
+    font-size: 1rem;
+    padding: 0.65rem 1.5rem;
+    display: flex;
+    align-items: center;
+    border: none;
+    outline: none;
+    box-shadow: 0 2px 8px rgba(44, 62, 80, 0.08);
+    background: #fff;
+    color: #2c3e50;
+    transition: background 0.18s, color 0.18s, transform 0.18s, box-shadow 0.18s;
+    cursor: pointer;
+    position: relative;
+    margin-bottom: 0;
+}
+
+.dashboard-action-btn.edit {
+    background: #e0e7ff;
+    color: #4f46e5;
+}
+
+.dashboard-action-btn.edit:hover,
+.dashboard-action-btn.edit:focus {
+    background: #c7d2fe;
+    color: #3730a3;
+    transform: scale(1.05);
+    box-shadow: 0 4px 16px rgba(79, 70, 229, 0.12);
+}
+
+.dashboard-action-btn.view {
+    background: #f1f5f9;
+    color: #0e7490;
+}
+
+.dashboard-action-btn.view:hover,
+.dashboard-action-btn.view:focus {
+    background: #bae6fd;
+    color: #0369a1;
+    transform: scale(1.05);
+    box-shadow: 0 4px 16px rgba(14, 116, 144, 0.12);
+}
+
+.dashboard-action-btn.download {
+    background: #e0f2fe;
+    color: #0284c7;
+    margin-top: 0.5rem;
+}
+
+.dashboard-action-btn.download:hover,
+.dashboard-action-btn.download:focus {
+    background: #bae6fd;
+    color: #0369a1;
+    transform: scale(1.05);
+    box-shadow: 0 4px 16px rgba(2, 132, 199, 0.12);
+}
+
+.dashboard-action-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+    transition: opacity 0.25s, transform 0.25s;
+}
+
+.fade-slide-enter-from,
+.fade-slide-leave-to {
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.fade-slide-enter-to,
+.fade-slide-leave-from {
+    opacity: 1;
+    transform: translateY(0);
 }
 </style>

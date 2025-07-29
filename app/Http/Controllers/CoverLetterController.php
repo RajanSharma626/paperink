@@ -265,4 +265,69 @@ class CoverLetterController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Update an existing cover letter and its fields.
+     */
+    public function update(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'name' => 'required|string|max:255',
+            'jobTitle' => 'required|string|max:255',
+            'company' => 'required|string|max:255',
+            'hiringManager' => 'nullable|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:255',
+            'address' => 'nullable|string|max:255',
+            'letter' => 'required|string',
+            'template_id' => 'nullable|exists:coverletter_templates,slug',
+        ]);
+
+        try {
+            $cover = CoverLetter::findOrFail($id);
+            $cover->user_id = $validated['user_id'];
+            $cover->name = $validated['name'];
+            $cover->job_title = $validated['jobTitle'];
+            $cover->company_name = $validated['company'];
+            $cover->hiring_manager_name = $validated['hiringManager'] ?? null;
+            $cover->email = $validated['email'] ?? null;
+            $cover->phone = $validated['phone'] ?? null;
+            $cover->address = $validated['address'] ?? null;
+            $cover->content = $validated['letter'];
+
+            // Handle template_id (convert slug to id)
+            if (isset($validated['template_id'])) {
+                $template = CoverTemplate::where('slug', $validated['template_id'])->first();
+                if ($template) {
+                    $cover->template_id = $template->id;
+                } else {
+                    return response()->json(['success' => false, 'message' => 'Template not found.'], 404);
+                }
+            }
+
+            $cover->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Cover letter updated successfully.',
+                'data' => [
+                    'cover_letter_id' => $cover->id,
+                    'cover_letter' => $cover
+                ]
+            ]);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cover letter not found',
+            ], 404);
+        } catch (\Exception $e) {
+            Log::error('Cover letter update failed: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update cover letter',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }
