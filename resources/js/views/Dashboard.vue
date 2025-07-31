@@ -91,16 +91,19 @@
                                             <div v-if="true"
                                                 class="resume-hover-overlay d-flex flex-column align-items-center justify-content-center">
                                                 <div class="d-flex flex-row gap-2 w-100 justify-content-center mb-2">
-                                                    <router-link :to="`/resume/${resume.id}/edit`"
-                                                        class="dashboard-action-btn edit" title="Edit Resume">
-                                                        <i class="bi bi-pencil-square me-1"></i> Edit
-                                                    </router-link>
+
                                                     <router-link :to="`/resume/${resume.id}/view`"
-                                                        class="dashboard-action-btn view" title="View Resume">
+                                                        class="dashboard-action-btn view nav-link" title="View Resume">
                                                         <i class="bi bi-eye me-1"></i> View
                                                     </router-link>
+
+                                                    <router-link :to="`/resume/${resume.id}/edit`"
+                                                        class="dashboard-action-btn edit nav-link" title="Edit Resume">
+                                                        <i class="bi bi-pencil-square me-1"></i> Edit
+                                                    </router-link>
+
                                                 </div>
-                                                <div class="w-100 d-flex justify-content-center">
+                                                <div class="d-flex flex-row gap-2 w-100 justify-content-center mb-2">
                                                     <button @click="downloadResumePdf(resume)"
                                                         :disabled="downloadingResumeId === resume.id"
                                                         class="dashboard-action-btn download" title="Download PDF">
@@ -110,6 +113,17 @@
                                                         <span
                                                             v-if="downloadingResumeId === resume.id">Downloading...</span>
                                                         <span v-else>Download</span>
+                                                    </button>
+
+
+                                                    <button @click="deleteResume(resume)"
+                                                        :disabled="deletingResumeId === resume.id"
+                                                        class="dashboard-action-btn delete" title="Delete Resume">
+                                                        <span v-if="deletingResumeId === resume.id"
+                                                            class="spinner-border spinner-border-sm me-1 fs-6"></span>
+                                                        <i v-else class="bi bi-trash me-1"></i>
+                                                        <span v-if="deletingResumeId === resume.id">Deleting...</span>
+                                                        <span v-else>Delete</span>
                                                     </button>
                                                 </div>
                                             </div>
@@ -166,18 +180,67 @@
                                 <!-- Cover Letter Template Cards -->
                                 <div v-for="coverLetter in coverLetters" :key="coverLetter.id"
                                     class="col-12 col-sm-6 col-lg-3">
-                                    <router-link :to="`/cover-letter/${coverLetter.id}/view`"
-                                        class="text-decoration-none">
-                                        <div class="card h-100 border">
-                                            <div class="card-body d-flex p-0 flex-column justify-content-between">
-                                                <div>
-                                                    <img :src="coverLetter.template.preview_img"
-                                                        class="img-fluid rounded custom-boc-shadow"
-                                                        alt="Template Preview" />
+                                    <div class="position-relative resume-card-group">
+                                        <router-link :to="`/cover-letter/${coverLetter.id}/view`"
+                                            class="text-decoration-none">
+                                            <div class="card h-100 border">
+                                                <div class="card-body d-flex p-0 flex-column justify-content-between">
+                                                    <div>
+                                                        <img :src="coverLetter.template.preview_img"
+                                                            class="img-fluid rounded custom-boc-shadow"
+                                                            alt="Template Preview" />
+                                                    </div>
                                                 </div>
                                             </div>
+                                        </router-link>
+                                        <!-- Hover Actions Overlay -->
+                                        <transition name="fade-slide">
+                                            <div v-if="true"
+                                                class="resume-hover-overlay d-flex flex-column align-items-center justify-content-center">
+                                                <div class="d-flex flex-row gap-2 w-100 justify-content-center mb-2">
+
+                                                    <router-link :to="`/cover-letter/${coverLetter.id}/view`"
+                                                        class="dashboard-action-btn view nav-link"
+                                                        title="View Cover Letter">
+                                                        <i class="bi bi-eye me-1"></i> View
+                                                    </router-link>
+
+                                                    <router-link :to="`/cover-letter/${coverLetter.id}/edit`"
+                                                        class="dashboard-action-btn edit nav-link"
+                                                        title="Edit Cover Letter">
+                                                        <i class="bi bi-pencil-square me-1"></i> Edit
+                                                    </router-link>
+                                                </div>
+                                                <div class="d-flex flex-row gap-2 w-100 justify-content-center mb-2">
+                                                    <button @click="downloadCoverPdf(coverLetter)"
+                                                        :disabled="downloadingCoverId === coverLetter.id"
+                                                        class="dashboard-action-btn download" title="Download PDF">
+                                                        <span v-if="downloadingCoverId === coverLetter.id"
+                                                            class="spinner-border spinner-border-sm me-1 fs-6"></span>
+                                                        <i v-else class="bi bi-download me-1"></i>
+                                                        <span
+                                                            v-if="downloadingCoverId === coverLetter.id">Downloading...</span>
+                                                        <span v-else>Download</span>
+                                                    </button>
+                                                    <button @click="deleteCoverLetter(coverLetter)"
+                                                        :disabled="deletingCoverId === coverLetter.id"
+                                                        class="dashboard-action-btn delete" title="Delete Cover Letter">
+                                                        <span v-if="deletingCoverId === coverLetter.id"
+                                                            class="spinner-border spinner-border-sm me-1 fs-6"></span>
+                                                        <i v-else class="bi bi-trash me-1"></i>
+                                                        <span
+                                                            v-if="deletingCoverId === coverLetter.id">Deleting...</span>
+                                                        <span v-else>Delete</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </transition>
+                                        <!-- Hidden Preview for PDF Generation (if needed) -->
+                                        <div v-if="pdfCoverId === coverLetter.id" style="display:none">
+                                            <component ref="hiddenCoverPreview" :is="hiddenCoverTemplateComponent"
+                                                :cover="coverLetter" class="hidden-cover-preview" />
                                         </div>
-                                    </router-link>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -228,6 +291,13 @@ const getTemplateComponent = (componentName) => {
     templateComponentCache[componentName] = comp;
     return comp;
 };
+
+const pdfCoverId = ref(null);
+const hiddenCoverPreview = ref(null);
+const hiddenCoverTemplateComponent = ref(null);
+const downloadingCoverId = ref(null);
+const deletingResumeId = ref(null);
+const deletingCoverId = ref(null);
 
 // Improved error handling and retry logic
 const makeApiRequest = async (url, data, retries = 3) => {
@@ -438,6 +508,126 @@ const downloadResumePdf = async (resume) => {
     }
 };
 
+const downloadCoverPdf = async (coverLetter) => {
+    downloadingCoverId.value = coverLetter.id;
+    try {
+        const module = await import(`@/components/templates/cover-letter/${coverLetter.template.component}.vue`);
+        hiddenCoverTemplateComponent.value = module.default;
+    } catch (e) {
+        alert('Could not load cover letter template for PDF.');
+        downloadingCoverId.value = null;
+        return;
+    }
+    pdfCoverId.value = coverLetter.id;
+    await nextTick();
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    const previewEl = hiddenCoverPreview.value?.$el || document.querySelector('.hidden-cover-preview');
+    if (!previewEl) {
+        alert('Could not render cover letter preview for PDF.');
+        pdfCoverId.value = null;
+        downloadingCoverId.value = null;
+        return;
+    }
+    const htmlContent = previewEl.outerHTML;
+    const styles = getAllStyles();
+    try {
+        const response = await fetch('/api/cover-letter/generate-pdf', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/pdf',
+            },
+            body: JSON.stringify({
+                html: htmlContent,
+                styles,
+                cover_id: coverLetter.id,
+                cover_name: coverLetter.name || 'CoverLetter',
+                options: { format: 'A4' },
+            }),
+        });
+        if (!response.ok) throw new Error('Failed to generate PDF');
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${coverLetter.name || 'CoverLetter'}_${new Date().toISOString().slice(0, 10)}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+    } catch (err) {
+        alert('Could not download PDF.');
+    } finally {
+        pdfCoverId.value = null;
+        hiddenCoverTemplateComponent.value = null;
+        downloadingCoverId.value = null;
+    }
+};
+
+const deleteResume = async (resume) => {
+    if (!confirm(`Are you sure you want to delete "${resume.name}"? This action cannot be undone.`)) {
+        return;
+    }
+
+    deletingResumeId.value = resume.id;
+    try {
+        const response = await fetch(`/api/resumes/${resume.id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
+                'Accept': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            // Remove from local array
+            resumes.value = resumes.value.filter(r => r.id !== resume.id);
+            alert('Resume deleted successfully!');
+        } else {
+            const data = await response.json();
+            alert(data.message || 'Failed to delete resume.');
+        }
+    } catch (err) {
+        console.error('Delete resume error:', err);
+        alert('An error occurred while deleting the resume.');
+    } finally {
+        deletingResumeId.value = null;
+    }
+};
+
+const deleteCoverLetter = async (coverLetter) => {
+    if (!confirm(`Are you sure you want to delete "${coverLetter.name}"? This action cannot be undone.`)) {
+        return;
+    }
+
+    deletingCoverId.value = coverLetter.id;
+    try {
+        const response = await fetch(`/api/cover-letter/${coverLetter.id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
+                'Accept': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            // Remove from local array
+            coverLetters.value = coverLetters.value.filter(c => c.id !== coverLetter.id);
+            alert('Cover letter deleted successfully!');
+        } else {
+            const data = await response.json();
+            alert(data.message || 'Failed to delete cover letter.');
+        }
+    } catch (err) {
+        console.error('Delete cover letter error:', err);
+        alert('An error occurred while deleting the cover letter.');
+    } finally {
+        deletingCoverId.value = null;
+    }
+};
+
 function getAllStyles() {
     let styles = '';
     const inlineStyles = document.querySelector('style');
@@ -600,6 +790,20 @@ function getAllStyles() {
     color: #0369a1;
     transform: scale(1.05);
     box-shadow: 0 4px 16px rgba(2, 132, 199, 0.12);
+}
+
+.dashboard-action-btn.delete {
+    background: #ffe0e0;
+    color: #e74c3c;
+    margin-top: 0.5rem;
+}
+
+.dashboard-action-btn.delete:hover,
+.dashboard-action-btn.delete:focus {
+    background: #ffc7c7;
+    color: #c0392b;
+    transform: scale(1.05);
+    box-shadow: 0 4px 16px rgba(231, 76, 60, 0.12);
 }
 
 .dashboard-action-btn:disabled {

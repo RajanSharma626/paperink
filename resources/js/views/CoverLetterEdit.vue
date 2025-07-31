@@ -12,7 +12,8 @@
               </div>
               <div class="d-flex justify-content-between align-items-center flex-wrap">
                 <h4 class="mb-0">{{ currentStepTitle }}</h4>
-                <span class="editor-tip mt-2 mt-lg-0">A well-written cover letter increases your chances of getting noticed!</span>
+                <span class="editor-tip mt-2 mt-lg-0">A well-written cover letter increases your chances of getting
+                  noticed!</span>
               </div>
             </div>
             <!-- Form -->
@@ -62,7 +63,8 @@
               </div>
               <!-- Navigation Button -->
               <div class="d-flex justify-content-between mt-4 gap-3">
-                <button v-if="step > 1" @click.prevent="handlePrev" type="button" class="btn btn-secondary btn-lg flex-grow-1">
+                <button v-if="step > 1" @click.prevent="handlePrev" type="button"
+                  class="btn btn-secondary btn-lg flex-grow-1">
                   <i class="bi bi-arrow-left-short"></i> Back
                 </button>
                 <button v-if="step < totalSteps" type="submit" class="btn theme-btn btn-lg flex-grow-1">
@@ -169,11 +171,9 @@ function handlePrev() {
 
 const saveCoverLetter = async () => {
   try {
-    // Ensure user_id is present (if you use auth store, set it here)
-    if (!coverData.value.user_id) {
-      // Optionally set user_id from auth store if available
-    }
-    const response = await axios.put(`/api/cover-letters/${coverId}`, coverData.value);
+
+    const response = await axios.put(`/api/cover-letter/${route.params.id}`, coverData.value);
+
     if (response.data.success) {
       router.replace(`/cover-letter/${coverId}/view`);
     } else {
@@ -192,38 +192,47 @@ const saveCoverLetter = async () => {
   height: 100vh;
   width: 100%;
 }
+
 .editor-form-card {
   height: 100vh;
   overflow-y: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
+
 .editor-form-card::-webkit-scrollbar {
   display: none;
 }
+
 .editor-container {
   margin: 0 auto;
 }
+
 .editor-card {
   padding: 40px 32px 32px 32px;
   width: 100%;
 }
+
 .editor-header h4 {
   font-weight: 700;
   font-size: 1.5rem;
 }
+
 .editor-tip {
   color: #6c757d;
   font-size: 0.95rem;
 }
+
 .progress {
   background: #e9ecef;
   border-radius: 3px;
 }
+
 .progress-bar {
   background: #0e6e7a;
   transition: width 0.3s;
 }
+
 .editor-preview-card {
   height: 100vh;
   overflow: hidden;
@@ -232,6 +241,7 @@ const saveCoverLetter = async () => {
   justify-content: center;
   padding: 0;
 }
+
 .preview-scaler {
   width: 100%;
   height: 100vh;
@@ -240,6 +250,7 @@ const saveCoverLetter = async () => {
   justify-content: center;
   position: relative;
 }
+
 .cover-preview-content {
   width: 100%;
   height: 100%;
@@ -248,19 +259,23 @@ const saveCoverLetter = async () => {
   border-radius: 18px;
   overflow: auto;
 }
+
 .cover-preview-content::-webkit-scrollbar {
   width: 4px;
   background: transparent;
 }
+
 .cover-preview-content::-webkit-scrollbar-thumb {
   background: #cfd8dc;
   border-radius: 4px;
 }
+
 .btn-lg {
   font-size: 1.15rem;
   padding: 14px 0;
   border-radius: 8px;
 }
+
 label {
   display: flex;
   align-items: center;
@@ -269,6 +284,7 @@ label {
   color: rgb(130, 139, 162);
   font-weight: 300;
 }
+
 .form-custom {
   border-radius: 3px;
   padding: 12px 16px;
@@ -281,8 +297,9 @@ label {
   color: rgb(30, 37, 50);
   transition: color 0.1s;
 }
+
 .form-custom:focus {
   color: rgb(30, 37, 50);
   border-bottom: 2px solid #0e6e7a;
 }
-</style> 
+</style>

@@ -84,14 +84,41 @@ class CoverLetterController extends Controller
         }
 
         try {
-            $CoverLetter = CoverLetter::with(['template'])
+            $coverLetters = CoverLetter::with(['template'])
                 ->where('user_id', $userId)
                 ->get();
 
-            Log::info('Data ' . $CoverLetter);
+            // Transform the data to match template expectations
+            $transformedData = $coverLetters->map(function ($coverLetter) {
+                $data = $coverLetter->toArray();
+                
+                // Add template component name if available
+                if ($coverLetter->template) {
+                    $data['template'] = $coverLetter->template;
+                } else {
+                    $data['template'] = null;
+                }
+
+                // Transform field names to match template expectations
+                $data['jobTitle'] = $data['job_title'];
+                unset($data['job_title']);
+
+                $data['company'] = $data['company_name'];
+                unset($data['company_name']);
+
+                $data['hiringManager'] = $data['hiring_manager_name'];
+                unset($data['hiring_manager_name']);
+
+                $data['letter'] = $data['content'];
+                unset($data['content']);
+
+                return $data;
+            });
+
+            Log::info('Data ' . $transformedData);
             return response()->json([
                 'success' => true,
-                'data' => $CoverLetter
+                'data' => $transformedData
             ]);
         } catch (\Exception $e) {
             Log::error('CoverLetter fetch failed: ' . $e->getMessage());
@@ -270,7 +297,7 @@ class CoverLetterController extends Controller
      * Update an existing cover letter and its fields.
      */
     public function update(Request $request, $id)
-    {
+    { 
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
             'name' => 'required|string|max:255',
@@ -281,7 +308,7 @@ class CoverLetterController extends Controller
             'phone' => 'nullable|string|max:255',
             'address' => 'nullable|string|max:255',
             'letter' => 'required|string',
-            'template_id' => 'nullable|exists:coverletter_templates,slug',
+            'template_id' => 'nullable|exists:coverletter_templates,id',
         ]);
 
         try {
@@ -298,7 +325,7 @@ class CoverLetterController extends Controller
 
             // Handle template_id (convert slug to id)
             if (isset($validated['template_id'])) {
-                $template = CoverTemplate::where('slug', $validated['template_id'])->first();
+                $template = CoverTemplate::where('id', $validated['template_id'])->first();
                 if ($template) {
                     $cover->template_id = $template->id;
                 } else {
@@ -326,6 +353,44 @@ class CoverLetterController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to update cover letter',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Delete a cover letter
+     */
+    public function destroy($id)
+    {
+        try {
+            $coverLetter = CoverLetter::findOrFail($id);
+
+            // Optionally check if the authenticated user owns the cover letter
+            // if (auth()->id() !== $coverLetter->user_id) {
+            //     return response()->json([
+            //         'success' => false,
+            //         'message' => 'Unauthorized'
+            //     ], 403);
+            // }
+
+            // Delete the cover letter
+            $coverLetter->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Cover letter deleted successfully'
+            ]);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cover letter not found'
+            ], 404);
+        } catch (\Exception $e) {
+            Log::error('Error deleting cover letter: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete cover letter',
                 'error' => $e->getMessage()
             ], 500);
         }

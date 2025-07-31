@@ -639,4 +639,55 @@ class ResumeController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Delete a resume and all its related data
+     */
+    public function destroy($id)
+    {
+        try {
+            $resume = Resume::findOrFail($id);
+
+            // Optionally check if the authenticated user owns the resume
+            // if (auth()->id() !== $resume->user_id) {
+            //     return response()->json([
+            //         'success' => false,
+            //         'message' => 'Unauthorized'
+            //     ], 403);
+            // }
+
+            // Delete related data
+            Experience::where('resume_id', $resume->id)->delete();
+            Education::where('resume_id', $resume->id)->delete();
+            Skill::where('resume_id', $resume->id)->delete();
+
+            // Delete preview image if it exists
+            if ($resume->preview_image) {
+                $imagePath = public_path($resume->preview_image);
+                if (file_exists($imagePath)) {
+                    unlink($imagePath);
+                }
+            }
+
+            // Delete the resume
+            $resume->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Resume deleted successfully'
+            ]);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Resume not found'
+            ], 404);
+        } catch (\Exception $e) {
+            Log::error('Error deleting resume: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete resume',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }
