@@ -26,11 +26,11 @@
 
       <!-- Resume Content Container -->
       <div class="row justify-content-center p-3">
-        <div class="col-6">
-
+        <div class="col-lg-6 col-md-12 mb-4">
+          <h5 class="mb-3">Select Template</h5>
           <div class="row">
             <!-- Loop through the templates and display each template -->
-            <div v-for="template in templates" :key="template.id" class="col-lg-4 col-12 mb-3">
+            <div v-for="template in templates" :key="template.id" class="col-lg-4 col-md-6 col-6 mb-3">
               <a href="javascript:void(0)" @click="updateTemp(template.id)">
                 <img :src="template.preview_img" class="img-fluid rounded tempImg"
                   :class="{ 'selected-temp': template.id == template_id }" alt="Template Preview" />
@@ -38,10 +38,26 @@
             </div>
           </div>
         </div>
-        <div class="col-6 ">
+        <div class="col-lg-6 col-md-12">
           <div class="d-flex justify-content-center">
             <div ref="resumeContent" class="resume-container rounded">
-              <component :is="templateComponent" :resume="resume" />
+              <!-- Zoom Controls -->
+              <div class="zoom-controls">
+                <button @click="zoomOut" class="zoom-btn" :disabled="zoomLevel <= 0.5">
+                  <i class="bi bi-dash-lg"></i>
+                </button>
+                <span class="zoom-level">{{ Math.round(zoomLevel * 100) }}%</span>
+                <button @click="zoomIn" class="zoom-btn" :disabled="zoomLevel >= 2">
+                  <i class="bi bi-plus-lg"></i>
+                </button>
+                <button @click="resetZoom" class="zoom-btn reset-btn">
+                  <i class="bi bi-arrow-clockwise"></i>
+                </button>
+              </div>
+              
+              <div class="preview-wrapper" :style="{ transform: `scale(${zoomLevel})` }">
+                <component :is="templateComponent" :resume="resume" />
+              </div>
             </div>
           </div>
         </div>
@@ -51,7 +67,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
 
@@ -67,6 +83,9 @@ const generatingPDF = ref(false)
 const resumeContent = ref(null)
 const templates = ref([]); // Store the templates fetched from the server
 let template_id = ref(null)
+
+// Zoom state
+const zoomLevel = ref(1)
 
 // Fetch the resume templates from the server
 const fetchTemplates = () => {
@@ -254,9 +273,49 @@ const updateTemp = async (newTemplateId) => {
   }
 }
 
+// Zoom functions
+const zoomIn = () => {
+  zoomLevel.value = Math.min(zoomLevel.value + 0.1, 2)
+}
+
+const zoomOut = () => {
+  zoomLevel.value = Math.max(zoomLevel.value - 0.1, 0.5)
+}
+
+const resetZoom = () => {
+  zoomLevel.value = 1
+}
+
+// Keyboard shortcuts for zoom
+const handleKeydown = (event) => {
+  if (event.ctrlKey || event.metaKey) {
+    switch (event.key) {
+      case '=':
+      case '+':
+        event.preventDefault()
+        zoomIn()
+        break
+      case '-':
+        event.preventDefault()
+        zoomOut()
+        break
+      case '0':
+        event.preventDefault()
+        resetZoom()
+        break
+    }
+  }
+}
 
 
-onMounted(fetchResume)
+onMounted(() => {
+  fetchResume()
+  document.addEventListener('keydown', handleKeydown)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleKeydown)
+})
 </script>
 
 <style scoped>
@@ -271,6 +330,73 @@ onMounted(fetchResume)
   line-height: 1.5;
   color: #333;
   background: white;
+  position: relative;
+}
+
+/* Zoom Controls */
+.zoom-controls {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 8px 12px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  backdrop-filter: blur(10px);
+}
+
+.zoom-btn {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  padding: 6px 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+}
+
+.zoom-btn:hover:not(:disabled) {
+  background: #e9ecef;
+  border-color: #adb5bd;
+}
+
+.zoom-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.zoom-btn.reset-btn {
+  background: #0e6e7a;
+  color: white;
+  border-color: #0e6e7a;
+}
+
+.zoom-btn.reset-btn:hover:not(:disabled) {
+  background: #0a5a63;
+}
+
+.zoom-level {
+  font-size: 14px;
+  font-weight: 500;
+  color: #495057;
+  min-width: 50px;
+  text-align: center;
+}
+
+.preview-wrapper {
+  transform-origin: top center;
+  transition: transform 0.2s ease;
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
 .resume-container * {
@@ -315,5 +441,101 @@ onMounted(fetchResume)
 .tempImg:hover {
   border: 3px solid rgba(14, 110, 122, 1) !important;
   transition: all 0.1s ease;
+}
+
+/* Responsive Design */
+@media (max-width: 991.98px) {
+  .resume-container {
+    max-width: 100%;
+    margin: 0 auto;
+  }
+  
+  .pdf-controls {
+    padding: 1rem !important;
+  }
+  
+  .pdf-controls .btn {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+  
+  .zoom-controls {
+    top: 10px;
+    right: 10px;
+    padding: 6px 8px;
+    gap: 4px;
+  }
+  
+  .zoom-btn {
+    min-width: 28px;
+    height: 28px;
+    padding: 4px 6px;
+  }
+  
+  .zoom-level {
+    font-size: 12px;
+    min-width: 40px;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .container-fluid {
+    padding: 0.5rem !important;
+  }
+  
+  .row.justify-content-center {
+    margin: 0;
+  }
+  
+  .col-lg-6 {
+    padding: 0.5rem;
+  }
+  
+  .tempImg {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  .resume-container {
+    transform: scale(0.8);
+    transform-origin: top center;
+    margin-bottom: 2rem;
+  }
+  
+  .zoom-controls {
+    top: 5px;
+    right: 5px;
+    padding: 4px 6px;
+  }
+  
+  .zoom-btn {
+    min-width: 24px;
+    height: 24px;
+    padding: 3px 4px;
+  }
+  
+  .zoom-level {
+    font-size: 11px;
+    min-width: 35px;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .resume-container {
+    transform: scale(0.7);
+    transform-origin: top center;
+  }
+  
+  .tempImg {
+    border-radius: 8px;
+  }
+  
+  .selected-temp {
+    border: 2px solid rgba(14, 110, 122, 1) !important;
+  }
+  
+  .tempImg:hover {
+    border: 2px solid rgba(14, 110, 122, 1) !important;
+  }
 }
 </style>

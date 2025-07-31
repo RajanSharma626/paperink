@@ -83,15 +83,31 @@
                 <!-- Right: Preview -->
                 <div class="col-lg-6 editor-preview-bg">
                     <div class="editor-preview-card">
+                        <!-- Zoom Controls -->
+                        <div class="zoom-controls">
+                            <button @click="zoomOut" class="zoom-btn" :disabled="zoomLevel <= 0.5">
+                                <i class="bi bi-dash-lg"></i>
+                            </button>
+                            <span class="zoom-level">{{ Math.round(zoomLevel * 100) }}%</span>
+                            <button @click="zoomIn" class="zoom-btn" :disabled="zoomLevel >= 2">
+                                <i class="bi bi-plus-lg"></i>
+                            </button>
+                            <button @click="resetZoom" class="zoom-btn reset-btn">
+                                <i class="bi bi-arrow-clockwise"></i>
+                            </button>
+                        </div>
+
                         <div class="preview-scaler">
                             <div class="cover-preview-content">
-                                <component v-if="templateComponent" :is="templateComponent"
-                                    :cover="coverStore.coverData" />
-                                <div v-else class="d-flex justify-content-center align-items-center"
+                                <div v-if="!templateComponent" class="d-flex justify-content-center align-items-center"
                                     style="height: 100%;">
                                     <div class="spinner-border text-primary" role="status">
                                         <span class="visually-hidden">Loading...</span>
                                     </div>
+                                </div>
+                                <div v-else class="preview-wrapper" :style="{ transform: `scale(${zoomLevel})` }">
+                                    <component v-if="templateComponent" :is="templateComponent"
+                                        :cover="coverStore.coverData" />
                                 </div>
                             </div>
                         </div>
@@ -103,7 +119,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
 import { useCoverStore } from '@/stores/cover'
@@ -117,6 +133,48 @@ const templateComponent = ref(null)
 const authStore = useAuthStore();
 const router = useRouter();
 
+// Zoom functionality
+const zoomLevel = ref(1)
+const zoomStep = 0.1
+const minZoom = 0.5
+const maxZoom = 2
+
+const zoomIn = () => {
+    if (zoomLevel.value < maxZoom) {
+        zoomLevel.value = Math.min(maxZoom, zoomLevel.value + zoomStep)
+    }
+}
+
+const zoomOut = () => {
+    if (zoomLevel.value > minZoom) {
+        zoomLevel.value = Math.max(minZoom, zoomLevel.value - zoomStep)
+    }
+}
+
+const resetZoom = () => {
+    zoomLevel.value = 1
+}
+
+// Keyboard shortcuts for zoom
+const handleKeydown = (event) => {
+    if (event.ctrlKey || event.metaKey) {
+        switch (event.key) {
+            case '=':
+            case '+':
+                event.preventDefault()
+                zoomIn()
+                break
+            case '-':
+                event.preventDefault()
+                zoomOut()
+                break
+            case '0':
+                event.preventDefault()
+                resetZoom()
+                break
+        }
+    }
+}
 
 const step = ref(1)
 const totalSteps = 3
@@ -147,7 +205,17 @@ const loadTemplate = async () => {
         console.error('Failed to load template:', error)
     }
 }
-onMounted(loadTemplate)
+
+// Add keyboard event listener and load template
+onMounted(() => {
+    document.addEventListener('keydown', handleKeydown)
+    loadTemplate()
+})
+
+// Clean up event listener
+onUnmounted(() => {
+    document.removeEventListener('keydown', handleKeydown)
+})
 
 const saveCoverLetter = async () => {
     try {
@@ -218,6 +286,65 @@ const saveCoverLetter = async () => {
     align-items: center;
     justify-content: center;
     padding: 0;
+    position: relative;
+}
+
+/* Zoom Controls */
+.zoom-controls {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 8px 12px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    backdrop-filter: blur(10px);
+}
+
+.zoom-btn {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 6px 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 32px;
+}
+
+.zoom-btn:hover:not(:disabled) {
+    background: #e9ecef;
+    border-color: #adb5bd;
+}
+
+.zoom-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.zoom-btn.reset-btn {
+    background: #0e6e7a;
+    color: white;
+    border-color: #0e6e7a;
+}
+
+.zoom-btn.reset-btn:hover:not(:disabled) {
+    background: #0a5a63;
+}
+
+.zoom-level {
+    font-size: 14px;
+    font-weight: 500;
+    color: #495057;
+    min-width: 50px;
+    text-align: center;
 }
 
 .preview-scaler {
@@ -236,15 +363,29 @@ const saveCoverLetter = async () => {
     box-shadow: 0 4px 32px rgba(30, 37, 50, 0.08);
     border-radius: 18px;
     overflow: auto;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 20px;
+}
+
+.preview-wrapper {
+    transform-origin: top center;
+    transition: transform 0.2s ease;
+    min-width: 100%;
+    display: flex;
+    justify-content: center;
 }
 
 .cover-preview-content::-webkit-scrollbar {
-  width: 4px; /* Thin scrollbar for Chrome, Safari, Opera */
-  background: transparent;
+    width: 4px;
+    /* Thin scrollbar for Chrome, Safari, Opera */
+    background: transparent;
 }
+
 .cover-preview-content::-webkit-scrollbar-thumb {
-  background: #cfd8dc;
-  border-radius: 4px;
+    background: #cfd8dc;
+    border-radius: 4px;
 }
 
 
@@ -280,5 +421,74 @@ label {
 .form-custom:focus {
     color: rgb(30, 37, 50);
     border-bottom: 2px solid #0e6e7a;
+}
+
+/* Responsive Design */
+@media (max-width: 991.98px) {
+    .editor-container {
+        flex-direction: column;
+    }
+
+    .editor-form-card {
+        height: auto;
+        max-height: 50vh;
+    }
+
+    .editor-preview-bg {
+        height: 50vh;
+    }
+
+    .editor-preview-card {
+        height: 50vh;
+    }
+
+    .zoom-controls {
+        top: 10px;
+        right: 10px;
+        padding: 6px 8px;
+        gap: 4px;
+    }
+
+    .zoom-btn {
+        min-width: 28px;
+        height: 28px;
+        padding: 4px 6px;
+    }
+
+    .zoom-level {
+        font-size: 12px;
+        min-width: 40px;
+    }
+
+    .cover-preview-content {
+        padding: 15px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .editor-card {
+        padding: 20px 16px;
+    }
+
+    .zoom-controls {
+        top: 5px;
+        right: 5px;
+        padding: 4px 6px;
+    }
+
+    .zoom-btn {
+        min-width: 24px;
+        height: 24px;
+        padding: 3px 4px;
+    }
+
+    .zoom-level {
+        font-size: 11px;
+        min-width: 35px;
+    }
+
+    .cover-preview-content {
+        padding: 10px;
+    }
 }
 </style>
