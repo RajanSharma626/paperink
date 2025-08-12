@@ -9,8 +9,8 @@
 </template>
 
 <script setup>
-import Navbar from '@/components/Navbar.vue'
-import Footer from '@/components/Footer.vue'
+import Navbar from '@/Components/Navbar.vue'
+import Footer from '@/Components/Footer.vue'
 import { useRoute } from 'vue-router'
 const route = useRoute()
 </script>
