@@ -48,7 +48,7 @@ import { useAuthStore } from '@/stores/auth';
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min.js'
-import Login from '@/components/Login.vue'
+import Login from '@/Components/Login.vue'
 
 const auth = useAuthStore();
 const router = useRouter();
